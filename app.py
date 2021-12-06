@@ -67,9 +67,9 @@ class EventListResource(Resource):
         event_parser.add_argument('name', type=str, required=True)
         event_parser.add_argument('details', type=str, required=True)
         event_parser.add_argument('location', type=str, required=True)
-        event_parser.add_argument('picture', type=str)
         event_parser.add_argument('event_time', type=str, required=True)
-        event_parser.add_argument('orgamizer', type=str, required=True)
+        event_parser.add_argument('organizer', type=str, required=True)
+        event_parser.add_argument('picture', type=str)
         args = event_parser.parse_args()
 
 class UserListResource(Resource):
@@ -94,10 +94,7 @@ class UserListResource(Resource):
 
         # TODO: move to model
         user = User(**args)
-        db.session.add(user)
-        db.session.commit()
-        user_id = user.id
-        db.session.close()
+        user_id = user.create()
         return {'id': user_id}, 201
 
 class UserResource(Resource):
