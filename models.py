@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import ARRAY
 from flask import abort
 
 
@@ -43,6 +44,11 @@ class BaseModel(db.Model):
             abort(422)
         finally:
             db.session.close()
+    
+    def from_dict(self, data):
+        for field in self.fields:
+            if field in data:
+                setattr(self, field, data[field])
 
 
 attendee = db.Table('attendees', 
@@ -59,34 +65,38 @@ presenter = db.Table('presenters',
 class Event(BaseModel):
     __tablename__ = 'events'
 
+    fields = ['name', 'event_time', 'details', 'country', 'city', 'picture', 
+                'topics', 'format', 'organizer_id', 'presenters']
     name = db.Column(db.String, nullable=False)
     event_time = db.Column(db.DateTime)
     details = db.Column(db.String)
-    location = db.Column(db.String)
+    country = db.Column(db.String, nullable=False)
+    city = db.Column(db.String, nullable=False)
     picture = db.Column(db.String)
-    # TODO: online / offline
-    # The user's id who created the event
+    topics = db.Column(ARRAY(db.String))
+    format = db.Column(db.String) # inperson, online, hybrid
+    
     organizer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    organizer = db.relationship('User', back_populates='events_organizer')
-    # If not defined then it will be the organizer
-    # presenter_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
-    attendees = db.relationship('User', back_populates='events_attendees', secondary=attendee, lazy='dynamic')
-    presenters = db.relationship('User', back_populates='events_presenters', secondary=presenter, lazy='dynamic')
+    organizer = db.relationship('User', back_populates='organizes_events')
+    attendees = db.relationship('User', back_populates='attends_events', secondary=attendee)
+    presenters = db.relationship('User', back_populates='presents_events', secondary=presenter)
 
 
 # TODO: check all fields
 class User(BaseModel):
     __tablename__ = 'users'
 
-    uuid = db.Column(db.String)
+    fields = ['name', 'email', 'country', 'city', 'picture', 'interests', 
+                'is_presenter', 'presenter_info', 'presenter_topics']
     name = db.Column(db.String)
     email = db.Column(db.String)
-    location = db.Column(db.String)
-    profile_picture = db.Column(db.String)
-    member_since = db.Column(db.DateTime)
-    interests = db.Column(db.ARRAY(db.String))
-    is_presenter = db.Column(db.Boolean)
-    # presenting description, topics & contact info
-    events_organizer = db.relationship('Event', back_populates='organizer', lazy='dynamic')
-    events_attendees = db.relationship('Event', back_populates='attendees', secondary=attendee, lazy='dynamic')
-    events_presenters = db.relationship('Event', back_populates='presenters', secondary=presenter, lazy='dynamic')
+    country = db.Column(db.String)
+    city = db.Column(db.String)
+    picture = db.Column(db.String)
+    is_presenter = db.Column(db.Boolean, default=False)
+    presenter_info = db.Column(db.String)
+    presenter_topics = db.Column(ARRAY(db.String))
+    
+    organizes_events = db.relationship('Event', back_populates='organizer')
+    attends_events = db.relationship('Event', back_populates='attendees', secondary=attendee)
+    presents_events = db.relationship('Event', back_populates='presenters', secondary=presenter)
