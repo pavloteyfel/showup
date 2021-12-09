@@ -1,4 +1,4 @@
-from flask_restx import Api, Resource, fields, marshal, reqparse, abort
+from flask_restx import Api, Resource, fields, marshal, reqparse, abort, marshal_with
 from flask import Flask
 from auth import requires_auth, AuthError
 from models import db, Event, User
@@ -6,7 +6,7 @@ from models import db, Event, User
 app = Flask(__name__)
 app.config.from_object('config')
 db.init_app(app)
-api = Api(app, version='1.0', title='ShowUp API', description='API for ShowUp', catch_all_404s=True, default='Test')
+api = Api(app, version='1.0', title='ShowUp API', description='API for ShowUp', catch_all_404s=True, default='Services')
 
 
 @api.errorhandler(AuthError)
@@ -19,6 +19,10 @@ parser = reqparse.RequestParser()
 #-----------------------------------------------------------------------------#
 # APIs
 #-----------------------------------------------------------------------------#
+
+class CountItem(fields.Raw):
+    def format(self, value):
+        return len(value)
 
 # TODO: move to the model
 event = {
@@ -43,6 +47,15 @@ presenter = {
     'url': fields.Url('user', absolute=True),
 }
 
+presenter_model = api.model('Presenter', {
+    'id': fields.Integer,
+    'name': fields.String,
+    'is_presenter': fields.Boolean,
+    'presenter_info': fields.String,
+    'presenter_topics': fields.List(fields.String),
+    'url': fields.Url('user', absolute=True),
+})
+
 # TODO: move to the model
 user_fields = {
     'id': fields.Integer,
@@ -59,6 +72,36 @@ user_fields = {
     'attends_events': fields.Nested(event),
     'presents_events': fields.Nested(event),
 }
+
+user_model = api.model('User', {
+    'id': fields.Integer,   
+    'name': fields.String,
+    'email': fields.String,
+    'country': fields.String,
+    'city': fields.String,
+    'picture': fields.String,
+    'interests': fields.List(fields.String),
+    'is_presenter': fields.Boolean,
+    'presenter_info': fields.String,
+    'presenter_topics': fields.List(fields.String),
+})
+
+event_model = api.model('Event', {
+    'id': fields.Integer,
+    'name': fields.String,
+    'picture': fields.String,
+    'details': fields.String,
+    'country': fields.String,
+    'topics': fields.List(fields.String),
+    'city': fields.String,
+    'event_time': fields.String,
+    'format': fields.String,
+    'organizer': fields.Nested(user_model),
+    'attendees': fields.Nested(user_model),
+    'presenters': fields.Nested(presenter_model),
+
+})
+
 
 # TODO: move to the model
 event_fields = {
@@ -172,6 +215,14 @@ class UserApplication(Resource):
         return {}, 200
 
 class EventListResource(Resource):
+    @api.doc(params={
+        'keyword': 'Optional, searching keyword',
+        'city': 'Optional',
+        'country': 'Optional',
+        'topic': 'Optional',
+        'format': 'Optional, types: [online, inperson, hybrid]',
+        })
+
     def get(self):
         event_parser = parser.copy()
         event_parser.add_argument('keyword', type=str, location='args')
@@ -199,11 +250,13 @@ class EventListResource(Resource):
             events_query = events_query.filter(Event.topics.contains(f'{{{args.topic}}}')) 
 
         events = events_query.all()
-        results = marshal(events, event, envelope='events') 
-        results['total'] = len(events)
+        results = marshal(events, event_model, envelope='events') 
+        # results = marshal(events, events_list_model) 
+        # results['total'] = len(events)
         return results
     
     @requires_auth('create:events')
+    @api.expect(event_model)
     def post(self, jwt):
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str, required=True)
