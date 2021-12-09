@@ -1,6 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import ARRAY
-from flask import abort
+from flask_sqlalchemy import SQLAlchemy
+from flask_restx import abort
 
 
 db = SQLAlchemy()
@@ -88,6 +88,7 @@ class User(BaseModel):
 
     fields = ['name', 'email', 'country', 'city', 'picture', 'interests', 
                 'is_presenter', 'presenter_info', 'presenter_topics']
+    auth_user_id = db.Column(db.String)
     name = db.Column(db.String)
     email = db.Column(db.String)
     country = db.Column(db.String)
