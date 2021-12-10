@@ -1,130 +1,93 @@
-from flask_restx import Api, Resource, fields, marshal, reqparse, abort, marshal_with
-from auth import requires_auth, AuthError
-from enumerations import EventFormat
+from flask_restx import Api, Resource, fields, reqparse, abort, inputs
 from models import db, Event, User
+from flask_migrate import Migrate
+from datetime import datetime
 from flask import Flask
+from flask_cors import CORS
 
+import auth
 
 app = Flask(__name__)
 app.config.from_object('config')
 db.init_app(app)
-base_url = 'http://localhost:5000'
-description = f'API for ShowUp, you can get token here: <a href="https://showup-meetup.eu.auth0.com/authorize?audience=showup-meetup&response_type=token&client_id=v1MwTTECDC6mXQknL9hN8luSV3mHhIz5&redirect_uri={base_url}">login</a>'
+Migrate(app, db)
+CORS(app)
+# LOGIN_URL = "https://showup-meetup.eu.auth0.com/authorize?audience={API_AUDIENCE}&response_type=token&client_id={CLIENT_ID}&redirect_uri={base_url}"
+description = f'API for ShowUp, you can get token here: <a href="LOGIN_URL">login</a>'
+auth.AUTH0_DOMAIN = app.config['AUTH0_DOMAIN']
+auth.AUTH0_WELL_KNOWN = app.config['AUTH0_WELL_KNOWN']
+auth.ALGORITHMS = app.config['ALGORITHMS']
+auth.API_AUDIENCE = app.config['API_AUDIENCE']
+
+authorizations = {
+    'jwt_token' : {
+        'type' : 'apiKey',
+        'in' : 'header',
+        'name' : 'Authorization',
+        'description': "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token"
+    
+    }
+}
+
 api = Api(app, version='1.0', title='ShowUp API', description=description, 
-    catch_all_404s=True, default='Services')
+    catch_all_404s=True, default='Related endpoints', authorizations=authorizations, security='jwt_token')
 
-# TODO: get current url for login string
+app.config['RESTX_MASK_SWAGGER'] = False
 
-@api.errorhandler(AuthError)
+
+@api.errorhandler(auth.AuthError)
 def handle_auth_errors(error):
     message = error.error.get('description')
     status_code = error.status_code
     return {'message': message}, status_code
+
+
 
 parser = reqparse.RequestParser()
 #-----------------------------------------------------------------------------#
 # APIs
 #-----------------------------------------------------------------------------#
 
-class CountItem(fields.Raw):
-    def format(self, value):
-        return len(value)
-
-# TODO: move to the model
-event = {
+user_short = api.model('UserShort', {
     'id': fields.Integer,
     'name': fields.String,
+    'url': fields.Url('user', absolute=True),
+})
+
+
+presenter = api.inherit('Presenter', user_short, {
+    'is_presenter': fields.Boolean,
+    'presenter_info': fields.String,
+    'presenter_topics': fields.List(fields.String),
+})
+
+event_base = api.model('EventBase', {
+    'name': fields.String,
+    'picture': fields.String,
+    'country': fields.String(example='Netherlands'),
+    'topics': fields.List(fields.String(example='technology', description='desc', title='title')),
+    'city': fields.String(example='Amsterdam'),
+    'event_time': fields.DateTime(dt_format='iso8601', example='2025-01-01T10:00:00'),
+    'format': fields.String(example='online'),
+})
+
+event_short = api.inherit('EventShort', event_base, {
+    'id': fields.Integer,
     'url': fields.Url('event', absolute=True),
-}
-
-# TODO: move to the model
-user = {
-    'id': fields.Integer,
-    'name': fields.String,
-    'url': fields.Url('user', absolute=True),
-}
-
-presenter = {
-    'id': fields.Integer,
-    'name': fields.String,
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
-    'url': fields.Url('user', absolute=True),
-}
-
-presenter_model = api.model('Presenter', {
-    'id': fields.Integer,
-    'name': fields.String,
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
-    'url': fields.Url('user', absolute=True),
-})
-
-# TODO: move to the model
-user_fields = {
-    'id': fields.Integer,
-    'name': fields.String,
-    'email': fields.String,
-    'country': fields.String,
-    'city': fields.String,
-    'picture': fields.String,
-    'interests': fields.List(fields.String),
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
-    'organizes_events': fields.Nested(event),
-    'attends_events': fields.Nested(event),
-    'presents_events': fields.Nested(event),
-}
-
-user_model = api.model('User', {
-    'id': fields.Integer,   
-    'name': fields.String,
-    'email': fields.String,
-    'country': fields.String,
-    'city': fields.String,
-    'picture': fields.String,
-    'interests': fields.List(fields.String),
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
-})
-
-event_full_model = api.model('EventFull', {
-    'id': fields.Integer,
-    'name': fields.String,
-    'picture': fields.String,
-    'details': fields.String,
-    'country': fields.String,
-    'topics': fields.List(fields.String),
-    'city': fields.String,
-    'event_time': fields.String,
-    'format': fields.String,
-    'organizer': fields.Nested(user_model),
-    'attendees': fields.Nested(user_model),
-    'presenters': fields.Nested(presenter_model),
-
-})
-
-event_model =  api.model('Event', {
-    'id': fields.Integer,
-    'name': fields.String,
-    'picture': fields.String,
-    'country': fields.String,
-    'topics': fields.List(fields.String),
-    'city': fields.String,
-    'event_time': fields.String,
-    'format': fields.String,
     'attendees_count': fields.Integer,
-    'url': fields.Url('event', absolute=True),
-
+    'organizer': fields.Nested(user_short),
 })
 
-event_list_model = api.model('EventList', {
+event = api.inherit('Event', event_short, {
+    'details': fields.String,
+    'organizer': fields.Nested(user_short),
+    'attendees': fields.Nested(user_short, as_list=True),
+    'presenters': fields.Nested(presenter, as_list=True),
+})
+
+event_list = api.model('EventList', {
     'events': fields.Nested(
-        event_model,
+        event_short,
         description='List of events',
         as_list=True
     ),
@@ -133,50 +96,70 @@ event_list_model = api.model('EventList', {
     )
 })
 
-
-create_event_body = api.model('CreateEventBody', {
-    'name': fields.String,
-    'picture': fields.String,
+update_event = api.inherit('CreateEventBody', event_base, {
     'details': fields.String,
-    'country': fields.String,
-    'topics': fields.List(fields.String(example='technology', description='desc', title='title')),
-    'city': fields.String,
-    'event_time': fields.String,
-    'format': fields.String,
-    'organizer': fields.Integer,
-    'presenters': fields.List(fields.Integer),
+    'organizer_id': fields.Integer(example=1),
+    'presenter_ids': fields.List(fields.Integer(example=1)),
 })
 
-patch_event_body = api.inherit('PatchEventBody',  create_event_body, {
-    'id': fields.Integer,
+
+user_base = api.model('UserBase', {
+    'name': fields.String,
+    'email': fields.String,
+    'country': fields.String,
+    'city': fields.String,
+    'picture': fields.String,
+    'is_presenter': fields.Boolean,
+    'presenter_info': fields.String,
+    'presenter_topics': fields.List(fields.String), 
 })
 
-# TODO: move to the model
-event_fields = {
+user = api.inherit('User', user_base, {
     'id': fields.Integer,
-    'name': fields.String,
-    'picture': fields.String,
-    'details': fields.String,
-    'country': fields.String,
-    'topics': fields.List(fields.String),
-    'city': fields.String,
-    'event_time': fields.String,
-    'format': fields.String,
-    'organizer': fields.Nested(user),
-    'attendees': fields.Nested(user),
-    'presenters': fields.Nested(user),
-}
+    'organizes_events': fields.Nested(event_short, as_list=True),
+    'attends_events': fields.Nested(event_short, as_list=True),
+    'presents_events': fields.Nested(event_short, as_list=True),
+})
 
+user_list = api.model('UserList', {
+    'users': fields.Nested(
+        user_short,
+        description='List of users',
+        as_list=True
+    ),
+    'total': fields.Integer(
+        description='Total number of users'
+    )
+})
+
+presenter_list = api.model('PresenterList', {
+    'presenters': fields.Nested(
+        presenter,
+        description='List of presenters',
+        as_list=True
+    ),
+    'total': fields.Integer(
+        description='Total number of presenters'
+    )
+})
+
+post_user_response = api.model('UserCreatedResponse', {'id': fields.Integer})
 
 class UserListResource(Resource):
-    @requires_auth('get:users')
+    @auth.requires_auth('get:users')
+    @api.marshal_with(user_list)
     def get(self, jwt):
         users = User.query.all()
-        results = marshal(users, user, envelope='users')
-        results['total'] = len(users)
-        return results
+        return {
+            'users': users,
+            'total': len(users)
+        }
 
-    @requires_auth('create:users')
+    @auth.requires_auth('create:users')
+    @api.expect(user_base)
+    @api.response(201, 'Created', post_user_response)
+    @api.response(401, 'Unauthorized')
+    @api.response(403, 'Forbidden')
     def post(self, jwt):
         user_parser = parser.copy()
         user_parser.add_argument('email', type=str, required=True)
@@ -184,7 +167,6 @@ class UserListResource(Resource):
         user_parser.add_argument('country', type=str)
         user_parser.add_argument('city', type=str)
         user_parser.add_argument('picture', type=str)
-        user_parser.add_argument('interests', type=str, action='append')
         user_parser.add_argument('is_presenter', type=bool)
         user_parser.add_argument('presenter_info', type=str)
         user_parser.add_argument('presenter_topics', type=str, action='append')
@@ -196,32 +178,59 @@ class UserListResource(Resource):
         return {'id': user_id}, 201
 
 class PresenterListResource(Resource):
-    @requires_auth('get:presenters')
+    @auth.requires_auth('get:presenters')
+    @api.doc(params={
+        'keyword': "Optional, searches in presenter's information",
+        'topic': 'Optional, exact match',
+        })
+    @api.marshal_with(presenter_list)
     def get(self, jwt):
-        users = User.query.filter(User.is_presenter).all()
-        results = marshal(users, presenter, envelope='presenters')
-        results['total'] = len(users)
-        return results
+
+        presenter_parser = parser.copy()
+        presenter_parser.add_argument('topic', type=str, location='args')
+        presenter_parser.add_argument('keyword', type=str, location='args')
+        args = presenter_parser.parse_args()
+
+        presenter_query = User.query.filter(User.is_presenter)
+
+        if args.topic:
+            presenter_query = presenter_query.filter(User.presenter_topics.contains(f'{{{args.topic}}}')) 
+
+        if args.keyword:
+            presenter_query = presenter_query.filter(User.presenter_info.ilike(f'%{args.keyword}%')) 
+
+        presenters = presenter_query.all()
+
+        return {
+            'presenters': presenters,
+            'total': len(presenters)
+        }
 
 @api.doc(params={'id': 'User ID'})
 class UserResource(Resource):
-    @requires_auth('get:users-details')
+    @auth.requires_auth('get:users-details')
+    @api.marshal_with(user)
     def get(self, jwt, id):
-        user = User.query.get_or_404(id)
-        return marshal(user, user_fields)
+        return User.query.get_or_404(id)
 
-    @requires_auth('delete:users')
+    @auth.requires_auth('delete:users')
+    @api.response(200, 'Success')
+    @api.response(404, 'Not found')
     def delete(self, jwt, id):
         user = User.query.get_or_404(id)
         user.delete()
         return {}, 200
 
-    @requires_auth('update:users')
+    @auth.requires_auth('update:users')
+    @api.expect(user_base)
+    @api.response(204, 'No content')
+    @api.response(403, 'Forbidden')
     def patch(self, jwt, id):
         user = User.query.get_or_404(id)
 
         if user.auth_user_id != jwt.get('sub'):
-            abort(403, message="User ID does not match with authorized user's ID")
+            if 'override:all' not in jwt.get('permissions'):
+                abort(403, message="User ID does not match with authorized user's ID")
 
         user_parser = parser.copy()
         user_parser.add_argument('email', type=str)
@@ -229,37 +238,42 @@ class UserResource(Resource):
         user_parser.add_argument('country', type=str)
         user_parser.add_argument('city', type=str)
         user_parser.add_argument('picture', type=str)
-        user_parser.add_argument('interests', type=str, action='append')
         user_parser.add_argument('is_presenter', type=bool)
         user_parser.add_argument('presenter_info', type=str)
         user_parser.add_argument('presenter_topics', type=str, action='append')
+
         args = user_parser.parse_args()
+        
+        args = {key:value for key, value in args.items() if value != None}
+
         user.from_dict(args)
         user.update()
         return {}, 204
 
 @api.doc(params={'user_id': 'User ID', 'event_id': 'Event ID'})
 class UserApplication(Resource):
-    @requires_auth('create:users-events-rel')
+    @auth.requires_auth('create:users-events-rel')
     def post(self, jwt, user_id, event_id):
         user = User.query.get_or_404(user_id)
         event = Event.query.get_or_404(event_id)
         if user in event.attendees:
-            abort(409)
+            abort(409, message='User is already applied for the event')
         event.attendees.append(user)
         event.update()
         return {}, 201
     
-    @requires_auth('delete:users-events-rel')
+    @auth.requires_auth('delete:users-events-rel')
     def delete(self, jwt, user_id, event_id):
         user = User.query.get_or_404(user_id)
 
         if user.auth_user_id != jwt.get('sub'):
-            abort(403, message="User ID does not match with authorized user's ID")
+            if 'override:all' not in jwt.get('permissions'):
+                abort(403, message="User ID does not match with authorized user's ID")
 
         event = Event.query.get_or_404(event_id)
+
         if user not in event.attendees:
-            abort(404)
+            abort(404, message='User is not attendee of the event')
         event.attendees.remove(user)
         event.update()
         return {}, 200
@@ -271,19 +285,20 @@ class EventListResource(Resource):
         'country': 'Optional',
         'topic': 'Optional',
         'format': 'Optional, types: [online, inperson, hybrid]',
-        })
-
-    # @api.marshal_with(el)
-    # @api.response(200, 'Success', el)
-    @api.marshal_with(event_list_model)
+        'time_from': 'Optional',
+        'time_to': 'Optional',
+        }, security=[])
+    @api.marshal_with(event_list)
     def get(self):
-        # TODO: data search and validation
         event_parser = parser.copy()
         event_parser.add_argument('keyword', type=str, location='args')
         event_parser.add_argument('country', type=str, location='args')
         event_parser.add_argument('city', type=str, location='args')
         event_parser.add_argument('topic', type=str, location='args')
-        event_parser.add_argument('format', type=str, location='args', choices=EventFormat.list())
+        event_parser.add_argument('format', type=str, location='args')
+        event_parser.add_argument('time_from', type=inputs.datetime_from_iso8601, location='args')
+        event_parser.add_argument('time_to',  type=inputs.datetime_from_iso8601, location='args')
+
         args = event_parser.parse_args()
         
         events_query = Event.query
@@ -301,7 +316,13 @@ class EventListResource(Resource):
             events_query = events_query.filter(Event.name.ilike(f'%{args.keyword}%')) 
 
         if args.topic:
-            events_query = events_query.filter(Event.topics.contains(f'{{{args.topic}}}')) 
+            events_query = events_query.filter(Event.topics.contains(f'{{{args.topic}}}'))
+        
+        if args.time_to:
+            events_query = events_query.filter(Event.event_time <= args.time_to)
+
+        if args.time_from:
+            events_query = events_query.filter(Event.event_time >= args.time_from)  
 
         events = events_query.all()
 
@@ -311,15 +332,16 @@ class EventListResource(Resource):
         }
     
 
-    @requires_auth('create:events')
+    @auth.requires_auth('create:events')
+    @api.expect(update_event)
     def post(self, jwt):
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str, required=True)
         event_parser.add_argument('details', type=str, required=True)
         event_parser.add_argument('country', type=str, required=True)
         event_parser.add_argument('city', type=str, required=True)
-        event_parser.add_argument('event_time', type=str, required=True)
-        event_parser.add_argument('format', type=str, required=True, choices=EventFormat.list())
+        event_parser.add_argument('event_time', type=inputs.datetime_from_iso8601, required=True)
+        event_parser.add_argument('format', type=str, required=True, choices=('online', 'inperson', 'hybrid'))
         event_parser.add_argument('topics', type=str, action='append', required=True)
         event_parser.add_argument('organizer_id', type=int, required=True)
         event_parser.add_argument('picture', type=str)
@@ -350,40 +372,47 @@ class EventListResource(Resource):
 
 @api.doc(params={'id': 'Event ID'})
 class EventResource(Resource):
-    @api.marshal_with(event_full_model)
+    @api.doc(security=[])
+    @api.marshal_with(event)
     def get(self, id):
         event = Event.query.get_or_404(id)
         return event
 
-    @requires_auth('delete:events')
+    @auth.requires_auth('delete:events')
     def delete(self, jwt, id):
         event = Event.query.get_or_404(id)
 
         if event.organizer.auth_user_id != jwt.get('sub'):
-            abort(403, message="Organizer's user ID does not match with authorized user's ID")
+            if 'override:all' not in jwt.get('permissions'):
+                abort(403, message="Organizer's user ID does not match with authorized user's ID")
 
         event.delete()
         return {}, 200
 
-    @requires_auth('update:events')
-    @api.expect(patch_event_body)
+    @auth.requires_auth('update:events')
+    @api.expect(update_event)
+    @api.response(204, 'No content')
+    @api.response(401, 'Unautherized')
+    @api.response(403, 'Forbidden')
     def patch(self, jwt, id):
         event = Event.query.get_or_404(id)
 
         if event.organizer.auth_user_id != jwt.get('sub'):
-            abort(403, message="Organizer's user ID does not match with authorized user's ID")
+            if 'override:all' not in jwt.get('permissions'):
+                abort(403, message="Organizer's user ID does not match with authorized user's ID")
 
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str)
         event_parser.add_argument('details', type=str)
         event_parser.add_argument('country', type=str)
         event_parser.add_argument('city', type=str)
-        event_parser.add_argument('event_time', type=str)
-        event_parser.add_argument('format', type=str, choices=EventFormat.list())
+        event_parser.add_argument('event_time', type=inputs.datetime_from_iso8601,)
+        event_parser.add_argument('format', type=str, choices=('hybrid', 'inperson', 'online'))
         event_parser.add_argument('topics', type=str, action='append')
         event_parser.add_argument('organizer_id', type=int)
         event_parser.add_argument('picture', type=str)
         event_parser.add_argument('presenter_ids', type=int, action='append')
+
         args = event_parser.parse_args()
 
         # Check if organizer exists with given ID among users
@@ -419,18 +448,22 @@ api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
 
 
 
-@app.route('/refresh')
+@app.route('/seed')
 def create_db():
-    db.drop_all()
-    db.create_all()
-    address = {'country':'Hungary', 'city':'Budapest'}
-    pavlo = User(name='Pavlo', **address)
-    anna = User(name='Anna', **address)
-    levente = User(name='Levente', is_presenter=True, **address)
+    lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+
+
+
+
     admin = User(name='Mr. Admin', **address, 
         auth_user_id='auth0|61b1fb9250f671006bf861b6', 
         email='admin@showup-meetup.com')
-    event = Event(name='First Run', organizer=pavlo, event_time='2022-02-02 10:00:00', 
+    
+    
+    
+    
+    
+    event = Event(name='First Run', organizer=pavlo, event_time='2022-02-02T10:00:00', 
             details='This is our first event, come!', city='Amsterdam',
             country='Netherlands', topics=['Life', 'Technology'], 
             format='online')
@@ -440,6 +473,11 @@ def create_db():
     db.session.add(event)
     db.session.commit()
     db.session.close()
+    return 'DONE'
+
+@app.route('/delete')
+def delete():
+    db.drop_all()
     return 'DONE'
 
 # @app.route('/token')
@@ -460,3 +498,8 @@ def create_db():
 # def default_error_handler(error):
 #     '''Default error handler'''
 #     return {'message': str(error)}, getattr(error, 'asd', 400)
+
+
+# from flask import json
+
+# print(json.dumps(api.__schema__))

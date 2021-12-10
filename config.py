@@ -6,7 +6,9 @@ import os
 # By default, load_dotenv doesn't override existing environment variables.
 load_dotenv()
 
-SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('DATABASE_TRACK_CHANGES')
+HOST = os.environ.get('HOST')
+
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('DATABASE_TRACK_CHANGES', False) == 'true'
 SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
 if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
