@@ -1,3 +1,4 @@
+from flask.templating import render_template
 from flask_restx import Api, Resource, fields, reqparse, abort, inputs
 from config import LOGIN_URL
 from models import db, Event, User
@@ -16,7 +17,16 @@ CORS(app)
 
 LOGIN_URL = app.config['LOGIN_URL']
 
-description = f'API for ShowUp, you can get token here: <a href="{LOGIN_URL}">login</a>'
+description = f'API for ShowUp application. You can grab a token <a href="{LOGIN_URL}">here</a> for a specific role listed below:<br>'
+description += """
+**Dummy Users**
+Admin role: angela.smith@showup-meetup.com
+Creator role: tom.johnson@showup-meetup.com
+User role: harrison.branch@showup-meetup.com
+
+Every user has the following password: **4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq**<br>
+"""
+
 auth.AUTH0_DOMAIN = app.config['AUTH0_DOMAIN']
 auth.AUTH0_WELL_KNOWN = app.config['AUTH0_WELL_KNOWN']
 auth.ALGORITHMS = app.config['ALGORITHMS']
@@ -443,3 +453,8 @@ api.add_resource(UserApplication, '/users/<int:user_id>/relationship/events/<int
 api.add_resource(PresenterListResource, '/presenters')
 api.add_resource(EventListResource, '/events', endpoint='events')
 api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
+
+
+@app.route('/token')
+def token():
+    return render_template('token.html', base_url=app.config['HOST'])

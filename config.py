@@ -28,6 +28,6 @@ LOGIN_URL = urljoin(AUTH0_DOMAIN, 'authorize') + '?' + urlencode({
     'audience': API_AUDIENCE,
     'response_type': 'token',
     'client_id': CLIENT_ID,
-    'redirect_uri': HOST,
+    'redirect_uri': HOST + 'token',
 
 })
