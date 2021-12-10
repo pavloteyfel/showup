@@ -7,10 +7,11 @@ import functools
 import requests
 
 
-AUTH0_DOMAIN = 'https://showup-meetup.eu.auth0.com/'
-AUTH0_WELL_KNOWN = f'{AUTH0_DOMAIN}.well-known/jwks.json'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'showup-meetup'
+REQUIRES_AUTH = True
+AUTH0_DOMAIN = ''
+AUTH0_WELL_KNOWN = ''
+ALGORITHMS = []
+API_AUDIENCE = ''
 
 # --------------------------------------------------------------------------- #
 # Helpers
@@ -228,10 +229,12 @@ def requires_auth(permission=''):
     def requires_auth_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            token = get_token_auth_header(request.headers)
-            key = verify_jwt(token)
-            payload = decode_token(token, key)
-            check_permissions(permission, payload)
+            payload = None
+            if REQUIRES_AUTH:
+                token = get_token_auth_header(request.headers)
+                key = verify_jwt(token)
+                payload = decode_token(token, key)
+                check_permissions(permission, payload)
             return func(*args, payload, **kwargs)
         return wrapper
     return requires_auth_decorator
