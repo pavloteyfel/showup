@@ -1,4 +1,5 @@
 from flask_restx import Api, Resource, fields, reqparse, abort, inputs
+from config import LOGIN_URL
 from models import db, Event, User
 from flask_migrate import Migrate
 from datetime import datetime
@@ -12,8 +13,10 @@ app.config.from_object('config')
 db.init_app(app)
 Migrate(app, db)
 CORS(app)
-# LOGIN_URL = "https://showup-meetup.eu.auth0.com/authorize?audience={API_AUDIENCE}&response_type=token&client_id={CLIENT_ID}&redirect_uri={base_url}"
-description = f'API for ShowUp, you can get token here: <a href="LOGIN_URL">login</a>'
+
+LOGIN_URL = app.config['LOGIN_URL']
+
+description = f'API for ShowUp, you can get token here: <a href="{LOGIN_URL}">login</a>'
 auth.AUTH0_DOMAIN = app.config['AUTH0_DOMAIN']
 auth.AUTH0_WELL_KNOWN = app.config['AUTH0_WELL_KNOWN']
 auth.ALGORITHMS = app.config['ALGORITHMS']

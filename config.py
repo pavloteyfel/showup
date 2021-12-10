@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from urllib.parse import urljoin, urlencode
 
 import os
 
@@ -20,3 +21,13 @@ AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_WELL_KNOWN = os.environ.get('AUTH0_WELL_KNOWN')
 ALGORITHMS = os.environ.get('ALGORITHMS').split(';')
 API_AUDIENCE = os.environ.get('API_AUDIENCE')
+
+CLIENT_ID = os.environ.get('CLIENT_ID')
+
+LOGIN_URL = urljoin(AUTH0_DOMAIN, 'authorize') + '?' + urlencode({
+    'audience': API_AUDIENCE,
+    'response_type': 'token',
+    'client_id': CLIENT_ID,
+    'redirect_uri': HOST,
+
+})
