@@ -1,13 +1,19 @@
 from flask_restx import Api, Resource, fields, marshal, reqparse, abort, marshal_with
-from flask import Flask
 from auth import requires_auth, AuthError
+from enumerations import EventFormat
 from models import db, Event, User
+from flask import Flask
+
 
 app = Flask(__name__)
 app.config.from_object('config')
 db.init_app(app)
-api = Api(app, version='1.0', title='ShowUp API', description='API for ShowUp', catch_all_404s=True, default='Services')
+base_url = 'http://localhost:5000'
+description = f'API for ShowUp, you can get token here: <a href="https://showup-meetup.eu.auth0.com/authorize?audience=showup-meetup&response_type=token&client_id=v1MwTTECDC6mXQknL9hN8luSV3mHhIz5&redirect_uri={base_url}">login</a>'
+api = Api(app, version='1.0', title='ShowUp API', description=description, 
+    catch_all_404s=True, default='Services')
 
+# TODO: get current url for login string
 
 @api.errorhandler(AuthError)
 def handle_auth_errors(error):
@@ -86,7 +92,7 @@ user_model = api.model('User', {
     'presenter_topics': fields.List(fields.String),
 })
 
-event_model = api.model('Event', {
+event_full_model = api.model('EventFull', {
     'id': fields.Integer,
     'name': fields.String,
     'picture': fields.String,
@@ -102,6 +108,48 @@ event_model = api.model('Event', {
 
 })
 
+event_model =  api.model('Event', {
+    'id': fields.Integer,
+    'name': fields.String,
+    'picture': fields.String,
+    'country': fields.String,
+    'topics': fields.List(fields.String),
+    'city': fields.String,
+    'event_time': fields.String,
+    'format': fields.String,
+    'attendees_count': fields.Integer,
+    'url': fields.Url('event', absolute=True),
+
+})
+
+event_list_model = api.model('EventList', {
+    'events': fields.Nested(
+        event_model,
+        description='List of events',
+        as_list=True
+    ),
+    'total': fields.Integer(
+        description='Total number of events'
+    )
+})
+
+
+create_event_body = api.model('CreateEventBody', {
+    'name': fields.String,
+    'picture': fields.String,
+    'details': fields.String,
+    'country': fields.String,
+    'topics': fields.List(fields.String(example='technology', description='desc', title='title')),
+    'city': fields.String,
+    'event_time': fields.String,
+    'format': fields.String,
+    'organizer': fields.Integer,
+    'presenters': fields.List(fields.Integer),
+})
+
+patch_event_body = api.inherit('PatchEventBody',  create_event_body, {
+    'id': fields.Integer,
+})
 
 # TODO: move to the model
 event_fields = {
@@ -155,6 +203,7 @@ class PresenterListResource(Resource):
         results['total'] = len(users)
         return results
 
+@api.doc(params={'id': 'User ID'})
 class UserResource(Resource):
     @requires_auth('get:users-details')
     def get(self, jwt, id):
@@ -166,7 +215,7 @@ class UserResource(Resource):
         user = User.query.get_or_404(id)
         user.delete()
         return {}, 200
-    
+
     @requires_auth('update:users')
     def patch(self, jwt, id):
         user = User.query.get_or_404(id)
@@ -189,6 +238,7 @@ class UserResource(Resource):
         user.update()
         return {}, 204
 
+@api.doc(params={'user_id': 'User ID', 'event_id': 'Event ID'})
 class UserApplication(Resource):
     @requires_auth('create:users-events-rel')
     def post(self, jwt, user_id, event_id):
@@ -223,13 +273,17 @@ class EventListResource(Resource):
         'format': 'Optional, types: [online, inperson, hybrid]',
         })
 
+    # @api.marshal_with(el)
+    # @api.response(200, 'Success', el)
+    @api.marshal_with(event_list_model)
     def get(self):
+        # TODO: data search and validation
         event_parser = parser.copy()
         event_parser.add_argument('keyword', type=str, location='args')
         event_parser.add_argument('country', type=str, location='args')
         event_parser.add_argument('city', type=str, location='args')
         event_parser.add_argument('topic', type=str, location='args')
-        event_parser.add_argument('format', type=str, location='args')
+        event_parser.add_argument('format', type=str, location='args', choices=EventFormat.list())
         args = event_parser.parse_args()
         
         events_query = Event.query
@@ -250,13 +304,14 @@ class EventListResource(Resource):
             events_query = events_query.filter(Event.topics.contains(f'{{{args.topic}}}')) 
 
         events = events_query.all()
-        results = marshal(events, event_model, envelope='events') 
-        # results = marshal(events, events_list_model) 
-        # results['total'] = len(events)
-        return results
+
+        return {
+            'events': events,
+            'total': len(events)
+        }
     
+
     @requires_auth('create:events')
-    @api.expect(event_model)
     def post(self, jwt):
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str, required=True)
@@ -264,7 +319,7 @@ class EventListResource(Resource):
         event_parser.add_argument('country', type=str, required=True)
         event_parser.add_argument('city', type=str, required=True)
         event_parser.add_argument('event_time', type=str, required=True)
-        event_parser.add_argument('format', type=str, required=True)
+        event_parser.add_argument('format', type=str, required=True, choices=EventFormat.list())
         event_parser.add_argument('topics', type=str, action='append', required=True)
         event_parser.add_argument('organizer_id', type=int, required=True)
         event_parser.add_argument('picture', type=str)
@@ -293,10 +348,12 @@ class EventListResource(Resource):
         return {'id': event_id}, 201
 
 
+@api.doc(params={'id': 'Event ID'})
 class EventResource(Resource):
+    @api.marshal_with(event_full_model)
     def get(self, id):
         event = Event.query.get_or_404(id)
-        return marshal(event, event_fields)
+        return event
 
     @requires_auth('delete:events')
     def delete(self, jwt, id):
@@ -307,8 +364,9 @@ class EventResource(Resource):
 
         event.delete()
         return {}, 200
-    
+
     @requires_auth('update:events')
+    @api.expect(patch_event_body)
     def patch(self, jwt, id):
         event = Event.query.get_or_404(id)
 
@@ -321,7 +379,7 @@ class EventResource(Resource):
         event_parser.add_argument('country', type=str)
         event_parser.add_argument('city', type=str)
         event_parser.add_argument('event_time', type=str)
-        event_parser.add_argument('format', type=str)
+        event_parser.add_argument('format', type=str, choices=EventFormat.list())
         event_parser.add_argument('topics', type=str, action='append')
         event_parser.add_argument('organizer_id', type=int)
         event_parser.add_argument('picture', type=str)
@@ -360,9 +418,6 @@ api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
 #-----------------------------------------------------------------------------#
 
 
-# @app.route('/')
-# def index():
-#     return '<a href="/refresh">Refresh DB</b>'
 
 @app.route('/refresh')
 def create_db():
