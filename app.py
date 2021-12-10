@@ -1,11 +1,10 @@
-from flask.templating import render_template
 from flask_restx import Api, Resource, fields, reqparse, abort, inputs
-from config import LOGIN_URL
+from flask.templating import render_template
 from models import db, Event, User
 from flask_migrate import Migrate
-from datetime import datetime
-from flask import Flask
+from config import LOGIN_URL
 from flask_cors import CORS
+from flask import Flask
 
 import auth
 
@@ -121,6 +120,7 @@ user_base = api.model('UserBase', {
     'email': fields.String,
     'country': fields.String,
     'city': fields.String,
+    'auth_user_id': fields.String,
     'picture': fields.String,
     'is_presenter': fields.Boolean,
     'presenter_info': fields.String,
@@ -179,6 +179,7 @@ class UserListResource(Resource):
         user_parser.add_argument('name', type=str)
         user_parser.add_argument('country', type=str)
         user_parser.add_argument('city', type=str)
+        user_parser.add_argument('auth_user_id', type=str)
         user_parser.add_argument('picture', type=str)
         user_parser.add_argument('is_presenter', type=bool)
         user_parser.add_argument('presenter_info', type=str)
@@ -458,7 +459,3 @@ api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
 @app.route('/token')
 def token():
     return render_template('token.html', base_url=app.config['HOST'])
-
-@app.route('/delete')
-def delete():
-    db.drop_all()
