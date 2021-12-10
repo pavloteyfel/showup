@@ -53,7 +53,9 @@ def handle_auth_errors(error):
     status_code = error.status_code
     return {'message': message}, status_code
 
-
+@app.errorhandler(500)
+def server_errors(error):
+    return {'message': 'Internal sever error'}, 500
 
 parser = reqparse.RequestParser()
 #-----------------------------------------------------------------------------#
@@ -176,10 +178,10 @@ class UserListResource(Resource):
     def post(self, jwt):
         user_parser = parser.copy()
         user_parser.add_argument('email', type=str, required=True)
+        user_parser.add_argument('auth_user_id', type=str, required=True)
         user_parser.add_argument('name', type=str)
         user_parser.add_argument('country', type=str)
         user_parser.add_argument('city', type=str)
-        user_parser.add_argument('auth_user_id', type=str)
         user_parser.add_argument('picture', type=str)
         user_parser.add_argument('is_presenter', type=bool)
         user_parser.add_argument('presenter_info', type=str)
@@ -227,13 +229,13 @@ class UserResource(Resource):
     def get(self, jwt, id):
         return User.query.get_or_404(id)
 
-    @auth.requires_auth('delete:users')
-    @api.response(200, 'Success')
-    @api.response(404, 'Not found')
-    def delete(self, jwt, id):
-        user = User.query.get_or_404(id)
-        user.delete()
-        return {}, 200
+    # @auth.requires_auth('delete:users')
+    # @api.response(200, 'Success')
+    # @api.response(404, 'Not found')
+    # def delete(self, jwt, id):
+    #     user = User.query.get_or_404(id)
+    #     user.delete()
+    #     return {}, 200
 
     @auth.requires_auth('update:users')
     @api.expect(user_base)
@@ -270,6 +272,11 @@ class UserApplication(Resource):
     def post(self, jwt, user_id, event_id):
         user = User.query.get_or_404(user_id)
         event = Event.query.get_or_404(event_id)
+
+        if user.auth_user_id != jwt.get('sub'):
+            if 'override:all' not in jwt.get('permissions'):
+                abort(403, message="User ID does not match with authorized user's ID")
+
         if user in event.attendees:
             abort(409, message='User is already applied for the event')
         event.attendees.append(user)

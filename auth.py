@@ -8,6 +8,7 @@ import requests
 
 
 REQUIRES_AUTH = True
+PAYLOAD = {}
 AUTH0_DOMAIN = ''
 AUTH0_WELL_KNOWN = ''
 ALGORITHMS = []
@@ -146,6 +147,12 @@ def check_permissions(permission, payload):
             'description': 'Permissions not included in JWT.'
         }, 400)
 
+    if not payload.get('sub'):
+        raise AuthError({
+            'code': 'unauthorized',
+            'description': 'Unable to find the subect ID.'
+        }, 400)
+
     if permission not in payload.get('permissions'):
         raise AuthError({
             'code': 'unauthorized',
@@ -188,7 +195,7 @@ def verify_jwt(token):
             'code': 'invalid_header',
             'description': 'Authorization malformed.'
         }, 401)
-
+    
     for key in jw_keys.get('keys'):
         if key.get('kid') == unverified_header.get('kid'):
             rsa_key = {
@@ -229,7 +236,7 @@ def requires_auth(permission=''):
     def requires_auth_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            payload = None
+            payload = PAYLOAD
             if REQUIRES_AUTH:
                 token = get_token_auth_header(request.headers)
                 key = verify_jwt(token)
