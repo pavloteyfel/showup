@@ -458,3 +458,7 @@ api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
 @app.route('/token')
 def token():
     return render_template('token.html', base_url=app.config['HOST'])
+
+@app.route('/delete')
+def delete():
+    db.drop_all()
