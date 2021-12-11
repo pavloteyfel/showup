@@ -56,6 +56,8 @@ There are three predefined roles in the application: admin, creator and user.
 - Can update any user
 - Can update, delete any event
 
+Auth0 login: [go](https://showup-meetup.eu.auth0.com/authorize?audience=showup-meetup&response_type=token&client_id=v1MwTTECDC6mXQknL9hN8luSV3mHhIz5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Ftoken)
+
 Example users can be used with this password: _4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq_
 - **user:** harrison.branch@showup-meetup.com
 - **creator:** tom.johnson@showup-meetup.com
@@ -87,7 +89,7 @@ Environment variables can be found in the `.env` file.
 2. After setting up the database run `flask db upgrade` command. It will create all the database tables and populate them with some seed data. 
 
 ### Auth0 Account
-The application uses [Auth0](https://auth0.com) for authentication and session management. If you want to use your own service then you need to update the related information in the `.env` file and create permissions described in the [#Roles and Permissions] chapter.
+The application uses [Auth0](https://auth0.com) for authentication and session management. If you want to use your own service then you need to update the related information in the `.env` file and create permissions described in the **Roles and Permissions** chapter.
 
 ### Running the Server
 Start the backend application with the following commands from the root folder: 
