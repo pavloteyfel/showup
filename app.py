@@ -93,8 +93,8 @@ def check_subject(auth_id, jwt):
     if auth_id != jwt.get('sub'):
         if 'override:all' not in jwt.get('permissions'):
             abort(
-                403, message="User ID does not match with authorized \
-                    user's ID")
+                403, 
+                message="User ID does not match with authorized user's ID")
 
 #-----------------------------------------------------------------------------#
 # Bunch of Endpoint Models used for validation and documentation
@@ -476,7 +476,7 @@ class UserApplication(Resource):
 
         event.attendees.remove(user)
         event.update()
-        return {}, 200
+        return None, 200
 
 
 @api.response(404, 'Requested resource not found')
@@ -633,7 +633,7 @@ class EventResource(Resource):
         check_subject(event.organizer.auth_user_id, jwt)
 
         event.delete()
-        return {}, 200
+        return None, 200
 
     @auth.requires_auth('update:events')
     @api.expect(update_event)
@@ -687,7 +687,7 @@ class EventResource(Resource):
 
         event.from_dict(args)
         event.update()
-        return {}, 204
+        return None, 204
 
 
 # Route assignments to the resources
