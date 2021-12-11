@@ -63,7 +63,7 @@ Example users can be used with this password: _4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq_
 - **creator:** tom.johnson@showup-meetup.com
 - **admin:** angela.smith@showup-meetup.com
 
-Example tokens generated in this ![file](test_token.json).
+Example tokens generated in this [file](test_token.json).
 
 ## Working Locally
 All backend code follows [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/).
