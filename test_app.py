@@ -7,6 +7,7 @@ import unittest
 
 DB_URL = 'postgresql://postgres:postgres@localhost:5432/showup_test'
 
+
 class TestApp(TestCase):
 
     def create_app(self):
@@ -14,20 +15,45 @@ class TestApp(TestCase):
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         db.init_app(app)
         return app
-    
+
     def setUp(self):
         db.create_all()
         db.session.commit()
-        user_data1 = {'name': 'Angela Smith', 'auth_user_id': 'auth0|61b26dad20680d00696be24c', 'email': 'angela.smith@showup-meetup.com', 'country': 'Canada', 'city': 'Toronto', 'is_presenter': False}
-        user_data2 = {'name': 'Tom Johnson', 'auth_user_id': 'auth0|61b26deb2bb9350069996006', 'email': 'tom.johnson@showup-meetup.com', 'country': 'Netherlands', 'city': 'Amsterdam', 'is_presenter': False}
-        user_data3 = {'name': 'Harrison Smith', 'auth_user_id': 'auth0|61b26e190ff95f0068feef8f', 'email': 'harrison.branch@showup-meetup.com', 'country': 'Russia', 'city': 'Moscow', 'is_presenter': True}
+        user_data1 = {
+            'name': 'Angela Smith',
+            'auth_user_id': 'auth0|61b26dad20680d00696be24c',
+            'email': 'angela.smith@showup-meetup.com',
+            'country': 'Canada',
+            'city': 'Toronto',
+            'is_presenter': False}
+        user_data2 = {
+            'name': 'Tom Johnson',
+            'auth_user_id': 'auth0|61b26deb2bb9350069996006',
+            'email': 'tom.johnson@showup-meetup.com',
+            'country': 'Netherlands',
+            'city': 'Amsterdam',
+            'is_presenter': False}
+        user_data3 = {
+            'name': 'Harrison Smith',
+            'auth_user_id': 'auth0|61b26e190ff95f0068feef8f',
+            'email': 'harrison.branch@showup-meetup.com',
+            'country': 'Russia',
+            'city': 'Moscow',
+            'is_presenter': True}
         user1 = User(**user_data1)
         user2 = User(**user_data2)
         user3 = User(**user_data3)
         db.session.add(user1)
         db.session.add(user2)
         db.session.add(user3)
-        event_data1 = {'name': 'Cybersecurity Night', 'country': 'Netherlands', 'city': 'Amsterdam', 'topics': ['technology'], 'format': 'online', 'event_time': '2022-01-01T10:00:00', 'details': 'Some vague details.'}
+        event_data1 = {
+            'name': 'Cybersecurity Night',
+            'country': 'Netherlands',
+            'city': 'Amsterdam',
+            'topics': ['technology'],
+            'format': 'online',
+            'event_time': '2022-01-01T10:00:00',
+            'details': 'Some vague details.'}
         event1 = Event(**event_data1)
         event1.organizer = user1
         event1.presenters.append(user2)
@@ -39,7 +65,7 @@ class TestApp(TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-    
+
     def test_endpoints_auth_required_401(self):
         response1 = self.client.get('/users')
         response2 = self.client.get('/users/1')
@@ -61,7 +87,7 @@ class TestApp(TestCase):
         data = response.get_json()
         self.assertEqual(len(data.get('presenters')), 1)
         self.assertEqual(response.status_code, 200)
-    
+
     def test_wrong_endpoint_404(self):
         response = self.client.get('/notfound')
         self.assertEqual(response.status_code, 404)
@@ -96,7 +122,7 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         self.assertTrue(data)
-    
+
     def test_create_users(self):
         auth.REQUIRES_AUTH = False
         json = {
@@ -107,7 +133,7 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 201)
         data = response.get_json()
         self.assertTrue(User.query.get(data.get('id')))
-    
+
     def test_create_users_wrong_data_400(self):
         auth.REQUIRES_AUTH = False
         json = {
@@ -143,9 +169,15 @@ class TestApp(TestCase):
 
     def test_create_events(self):
         auth.REQUIRES_AUTH = False
-        json = {'name': 'Cybersecurity Night', 'country': 'Netherlands', 
-            'city': 'Amsterdam', 'topics': ['technology'], 'format': 'online', 
-            'event_time': '2022-01-01T10:00:00', 'organizer_id': 1, 'details': 'Some details.'}
+        json = {
+            'name': 'Cybersecurity Night',
+            'country': 'Netherlands',
+            'city': 'Amsterdam',
+            'topics': ['technology'],
+            'format': 'online',
+            'event_time': '2022-01-01T10:00:00',
+            'organizer_id': 1,
+            'details': 'Some details.'}
         response = self.client.post('/events', json=json)
         data = response.get_json()
         self.assertEqual(response.status_code, 201)
@@ -166,39 +198,52 @@ class TestApp(TestCase):
 
     def test_create_relationship(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'auth0|61b26deb2bb9350069996006', 'permissions': ''}
+        auth.PAYLOAD = {
+            'sub': 'auth0|61b26deb2bb9350069996006',
+            'permissions': ''}
         response = self.client.post('/users/2/relationship/events/1')
         self.assertEqual(response.status_code, 201)
 
     def test_create_relationship_wrong_id_404(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'auth0|61b26deb2bb9350069996006', 'permissions': ''}
+        auth.PAYLOAD = {
+            'sub': 'auth0|61b26deb2bb9350069996006',
+            'permissions': ''}
         response = self.client.post('/users/999/relationship/events/999')
         self.assertEqual(response.status_code, 404)
 
     def test_create_relationship_already_exist_409(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
+        auth.PAYLOAD = {
+            'sub': 'auth0|61b26e190ff95f0068feef8f',
+            'permissions': ''}
         response = self.client.post('/users/3/relationship/events/1')
         self.assertEqual(response.status_code, 409)
 
     def test_create_relationship_admin(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'idmismathdoesnotmatter', 'permissions': 'override:all'}
+        auth.PAYLOAD = {
+            'sub': 'idmismathdoesnotmatter',
+            'permissions': 'override:all'}
         response = self.client.post('/users/2/relationship/events/1')
         self.assertEqual(response.status_code, 201)
-    
+
     def test_delete_relationship(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
+        auth.PAYLOAD = {
+            'sub': 'auth0|61b26e190ff95f0068feef8f',
+            'permissions': ''}
         response = self.client.delete('/users/3/relationship/events/1')
         self.assertEqual(response.status_code, 200)
-    
+
     def test_delete_relationship_wrong_id_404(self):
         auth.REQUIRES_AUTH = False
-        auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
+        auth.PAYLOAD = {
+            'sub': 'auth0|61b26e190ff95f0068feef8f',
+            'permissions': ''}
         response = self.client.delete('/users/3/relationship/events/999')
         self.assertEqual(response.status_code, 404)
+
 
 if __name__ == '__main__':
     unittest.main()

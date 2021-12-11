@@ -93,7 +93,7 @@ def check_subject(auth_id, jwt):
     if auth_id != jwt.get('sub'):
         if 'override:all' not in jwt.get('permissions'):
             abort(
-                403, 
+                403,
                 message="User ID does not match with authorized user's ID")
 
 #-----------------------------------------------------------------------------#
