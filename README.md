@@ -34,7 +34,7 @@ This project simulates some meetup.com API functionalities, like:
 
 There are three predefined roles in the application: admin, creator and user.
 
-**Public** anybody, no permissions required:
+**Anybody**, no permissions required:
 - Can view events and event details only
 
 **User** additional permissions: `get:users-details`, `update:users`, `create:users-events-rel`, `delete:users-events-rel`
