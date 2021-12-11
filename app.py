@@ -20,7 +20,7 @@ description = f"""API for ShowUp application. You can grab a token \
 <a href="{LOGIN_URL}">here</a> for a specific role listed below to \
 use the `Authorize` button.<br>
 
-`Public` anybody, no permissions required: 
+`Public` anybody, no permissions required:
 - Can view events and event details
 
 `User` harrison.branch@showup-meetup.com
@@ -73,6 +73,8 @@ api = Api(
 
 # Wraps the auth lib's custom error. All the other HTTP errors are covered by
 # the flask-restx library
+
+
 @api.errorhandler(auth.AuthError)
 def handle_auth_errors(error):
     message = error.error.get('description')
@@ -85,6 +87,8 @@ def handle_auth_errors(error):
 
 # Checks if the issuer/subject modifies own resource
 # In case of override:all privilege (for admins) we don't care :)
+
+
 def check_subject(auth_id, jwt):
     if auth_id != jwt.get('sub'):
         if 'override:all' not in jwt.get('permissions'):
@@ -96,6 +100,7 @@ def check_subject(auth_id, jwt):
 # Bunch of Endpoint Models used for marshing and documentation
 #-----------------------------------------------------------------------------#
 
+
 user_short = api.model('UserShort', {
     'id': fields.Integer(example=1, description='User ID'),
     'name': fields.String(
@@ -105,10 +110,10 @@ user_short = api.model('UserShort', {
 
 presenter = api.inherit('Presenter', user_short, {
     'is_presenter': fields.Boolean(
-        example=False, 
+        example=False,
         description='Indicates if the user want to hold presentations'),
     'presenter_info': fields.String(
-        example='Presentation information', 
+        example='Presentation information',
         description='Detailed presentation information'),
     'presenter_topics': fields.List(fields.String(
         example='technology',
@@ -117,27 +122,27 @@ presenter = api.inherit('Presenter', user_short, {
 
 event_base = api.model('EventBase', {
     'name': fields.String(
-        example='Cool Event', 
+        example='Cool Event',
         description='Name of the event'),
     'picture': fields.String(
-        example='https://dummyimage.com/600x400/000/fff&text=example', 
+        example='https://dummyimage.com/600x400/000/fff&text=example',
         description='Url to a picture location'),
     'country': fields.String(
-        example='Netherlands', 
+        example='Netherlands',
         description='Country where the event will be held'),
     'topics': fields.List(fields.String(
         example='technology',
         description='List of topics touched on the event'
-        )),
+    )),
     'city': fields.String(
         example='Amsterdam',
         description='City where the event will be held'),
     'event_time': fields.DateTime(
-        dt_format='iso8601', 
+        dt_format='iso8601',
         example='2025-01-01T10:00:00',
         description='When the event starts'),
     'format': fields.String(
-        example='online', 
+        example='online',
         enum=['online', 'inperson', 'hybrid'],
         description='Type of event: online, inperson, hybrid'),
 })
@@ -146,7 +151,7 @@ event_short = api.inherit('EventShort', event_base, {
     'id': fields.Integer(example=1, description='Event ID'),
     'url': fields.Url('event', absolute=True, example='http://something'),
     'attendees_count': fields.Integer(
-        example=1, 
+        example=1,
         description='Number of attendees subscribed for the event'),
     'organizer': fields.Nested(
         user_short,
@@ -192,7 +197,7 @@ update_event = api.inherit('CreateEventBody', event_base, {
     'presenter_ids': fields.List(fields.Integer(
         example=1,
         description='So we are changing our presenters? Please provide an ID.'
-        )),
+    )),
 })
 
 
@@ -213,13 +218,13 @@ user_base = api.model('UserBase', {
         example='auth0|something',
         description='Not sure this info should be provided like that'),
     'picture': fields.String(
-        example='https://dummyimage.com/600x400/000/fff&text=example', 
+        example='https://dummyimage.com/600x400/000/fff&text=example',
         description='Url to a picture location'),
     'is_presenter': fields.Boolean(
-        example=False, 
+        example=False,
         description='Indicates if the user want to hold presentations'),
     'presenter_info': fields.String(
-        example='Presentation information', 
+        example='Presentation information',
         description='Detailed presentation information'),
     'presenter_topics': fields.List(fields.String(
         example='technology',
@@ -236,7 +241,7 @@ user = api.inherit('User', user_base, {
         as_list=True),
     'attends_events': fields.Nested(
         event_short,
-        description='List of events the user attends' ,
+        description='List of events the user attends',
         as_list=True),
     'presents_events': fields.Nested(
         event_short,
@@ -279,6 +284,7 @@ post_event_response = api.model(
 #-----------------------------------------------------------------------------#
 # Endpoints
 #-----------------------------------------------------------------------------#
+
 
 @api.response(401, 'Unauthorized request')
 @api.response(403, 'Forbidden request')
@@ -338,7 +344,7 @@ class PresenterListResource(Resource):
     })
     @api.marshal_with(presenter_list)
     def get(self, jwt):
-        """Lists all users that want's to hold a presentation. 
+        """Lists all users that want's to hold a presentation.
         Required permission `[create:users]`"""
 
         # Define what data is expected from the url params
@@ -378,7 +384,7 @@ class UserResource(Resource):
     @auth.requires_auth('get:users-details')
     @api.marshal_with(user)
     def get(self, jwt, id):
-        """Retuns user detailed data. 
+        """Retuns user detailed data.
         Required permission `[get:users-details]`"""
         return User.query.get_or_404(id)
 
@@ -411,8 +417,8 @@ class UserResource(Resource):
         args = user_parser.parse_args()
 
         # Filter our none attributes
-        filtered_args = {key: value for key, value 
-                                    in args.items() if value is not None}
+        filtered_args = {key: value for key, value
+                         in args.items() if value is not None}
 
         # Give them 422 if no useful data was provided :)
         if not filtered_args:
@@ -436,7 +442,7 @@ class UserApplication(Resource):
     @api.response(201, 'Success, subscribed')
     @api.response(409, 'User-Event relationship already exists')
     def post(self, jwt, user_id, event_id):
-        """User can subscribe for an event. 
+        """User can subscribe for an event.
         Required permission `[create:users-events-rel]`"""
         user = User.query.get_or_404(user_id)
 
@@ -455,7 +461,7 @@ class UserApplication(Resource):
     @auth.requires_auth('delete:users-events-rel')
     @api.response(200, 'Success, unsubscribed')
     def delete(self, jwt, user_id, event_id):
-        """User can subscribe for an event. 
+        """User can subscribe for an event.
         Required permission `[delete:users-events-rel]`"""
 
         user = User.query.get_or_404(user_id)
@@ -549,7 +555,7 @@ class EventListResource(Resource):
     @api.response(401, 'Unauthorized request')
     @api.response(403, 'Forbidden request')
     def post(self, jwt):
-        """Updates event data. 
+        """Updates event data.
         Required permission: `[create:event]`"""
 
         # Param validations
@@ -607,7 +613,7 @@ class EventResource(Resource):
     @api.marshal_with(event)
     @api.response(404, 'Requested resource not found')
     def get(self, id):
-        """Retuns event detailed data. 
+        """Retuns event detailed data.
         No permission required"""
         event = Event.query.get_or_404(id)
         return event
@@ -619,11 +625,11 @@ class EventResource(Resource):
     @api.response(404, 'Requested resource not found')
     @api.response(422, 'The received data cannot be processed')
     def delete(self, jwt, id):
-        """Deletes an event. 
+        """Deletes an event.
         Required permission: `[delete:events]`"""
         event = Event.query.get_or_404(id)
 
-        # Checks if it is the organizer who tries to delete 
+        # Checks if it is the organizer who tries to delete
         check_subject(event.organizer.auth_user_id, jwt)
 
         event.delete()
@@ -634,7 +640,7 @@ class EventResource(Resource):
     @api.response(204, 'Success, no content will be sent back')
     @api.response(422, 'The received data cannot be processed')
     def patch(self, jwt, id):
-        """Updates an event. 
+        """Updates an event.
         Required permission: `[update:events]`"""
         event = Event.query.get_or_404(id)
 
@@ -682,6 +688,7 @@ class EventResource(Resource):
         event.from_dict(args)
         event.update()
         return {}, 204
+
 
 # Route assignments to the resources
 api.add_resource(UserListResource, '/users', endpoint='users')
