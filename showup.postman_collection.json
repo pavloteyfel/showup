@@ -1,0 +1,1352 @@
+{
+	"info": {
+		"_postman_id": "e1e71fa4-3ba9-47a2-82ce-b7d9292282c0",
+		"name": "showup",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "public",
+			"item": [
+				{
+					"name": "get events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Amsterdam",
+									"disabled": true
+								},
+								{
+									"key": "country",
+									"value": "Netherlands",
+									"disabled": true
+								},
+								{
+									"key": "keyword",
+									"value": "cyber",
+									"disabled": true
+								},
+								{
+									"key": "format",
+									"value": "online",
+									"description": "online, inperson, hybrid",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "technology",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get presenters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/presenters",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"presenters"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "technology",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "sport",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Harrison Branch\",\r\n    \"email\": \"harrison.branch@showup-meetup.com\",\r\n    \"country\": \"Russia\",\r\n    \"city\": \"Moscow\",\r\n    \"auth_user_id\": \"auth0|61b26e190ff95f0068feef8f\",\r\n    \"picture\": \"http://\",\r\n    \"is_presenter\": false,\r\n    \"presenter_info\": null,\r\n    \"presenter_topics\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create events",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Let's get together\", \r\n    \"country\": \"Russia\", \r\n    \"details\": \"Some details about the event...\",\r\n    \"city\": \"Moscow\",\r\n    \"picture\": \"https://\",\r\n    \"topics\": [\"dancing\"], \r\n    \"format\": \"online\", \r\n    \"event_time\": \"2022-04-02T10:00:00\",\r\n    \"organizer_id\": 2,\r\n    \"presenter_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create relationship",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch events",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"picture\": \"https://pic.pic\",\r\n    \"details\": \"Some details about the event\",\r\n    \"country\": \"Hungary\",\r\n    \"city\": \"Budapest\",\r\n    \"event_time\": \"2022-12-30T10:10:10\",\r\n    \"format\": \"online\",\r\n    \"topics\": [\"everything\", \"nothing\", \"classic\"],\r\n    \"organizer_id\": 1,\r\n    \"presenter_ids\": [1,2]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch user",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mr. Agent P\",\r\n    \"email\": \"asd@asd.euasd\",\r\n    \"location\": \"Budapest\",\r\n    \"picture\": \"http://img.com\",\r\n    \"is_presenter\": true,\r\n    \"presenter_info\": \"I want to present about everything\",\r\n    \"presenter_topics\": [\"music\", \"sport\", \"whatever\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete events",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete relationship",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/2/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "get events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Amsterdam",
+									"disabled": true
+								},
+								{
+									"key": "country",
+									"value": "Netherlands",
+									"disabled": true
+								},
+								{
+									"key": "keyword",
+									"value": "cyber",
+									"disabled": true
+								},
+								{
+									"key": "format",
+									"value": "online",
+									"description": "online, inperson, hybrid",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "technology",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get presenters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/presenters",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"presenters"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "technology",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "sport",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Harrison Branch\",\r\n    \"email\": \"harrison.branch@showup-meetup.com\",\r\n    \"country\": \"Russia\",\r\n    \"city\": \"Moscow\",\r\n    \"auth_user_id\": \"auth0|61b26e190ff95f0068feef8f\",\r\n    \"picture\": \"http://\",\r\n    \"is_presenter\": false,\r\n    \"presenter_info\": null,\r\n    \"presenter_topics\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create events",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Let's get together\", \r\n    \"country\": \"Russia\", \r\n    \"details\": \"Some details about the event...\",\r\n    \"city\": \"Moscow\",\r\n    \"picture\": \"https://\",\r\n    \"topics\": [\"dancing\"], \r\n    \"format\": \"online\", \r\n    \"event_time\": \"2022-04-02T10:00:00\",\r\n    \"organizer_id\": 2,\r\n    \"presenter_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create relationship",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch events",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"picture\": \"https://pic.pic\",\r\n    \"details\": \"Some details about the event\",\r\n    \"country\": \"Hungary\",\r\n    \"city\": \"Budapest\",\r\n    \"event_time\": \"2022-12-30T10:10:10\",\r\n    \"format\": \"online\",\r\n    \"topics\": [\"everything\", \"nothing\", \"classic\"],\r\n    \"organizer_id\": 1,\r\n    \"presenter_ids\": [1,2]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch user",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mr. Agent P\",\r\n    \"email\": \"asd@asd.euasd\",\r\n    \"location\": \"Budapest\",\r\n    \"picture\": \"http://img.com\",\r\n    \"is_presenter\": true,\r\n    \"presenter_info\": \"I want to present about everything\",\r\n    \"presenter_topics\": [\"music\", \"sport\", \"whatever\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete events",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete relationship",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/2/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{user_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "creator",
+			"item": [
+				{
+					"name": "get events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Amsterdam",
+									"disabled": true
+								},
+								{
+									"key": "country",
+									"value": "Netherlands",
+									"disabled": true
+								},
+								{
+									"key": "keyword",
+									"value": "cyber",
+									"disabled": true
+								},
+								{
+									"key": "format",
+									"value": "online",
+									"description": "online, inperson, hybrid",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "technology",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get presenters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/presenters",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"presenters"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "technology",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "sport",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Harrison Branch\",\r\n    \"email\": \"harrison.branch@showup-meetup.com\",\r\n    \"country\": \"Russia\",\r\n    \"city\": \"Moscow\",\r\n    \"auth_user_id\": \"auth0|61b26e190ff95f0068feef8f\",\r\n    \"picture\": \"http://\",\r\n    \"is_presenter\": false,\r\n    \"presenter_info\": null,\r\n    \"presenter_topics\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create events",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Let's get together\", \r\n    \"country\": \"Russia\", \r\n    \"details\": \"Some details about the event...\",\r\n    \"city\": \"Moscow\",\r\n    \"picture\": \"https://\",\r\n    \"topics\": [\"dancing\"], \r\n    \"format\": \"online\", \r\n    \"event_time\": \"2022-04-02T10:00:00\",\r\n    \"organizer_id\": 2,\r\n    \"presenter_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create relationship",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch events",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"picture\": \"https://pic.pic\",\r\n    \"details\": \"Some details about the event\",\r\n    \"country\": \"Hungary\",\r\n    \"city\": \"Budapest\",\r\n    \"event_time\": \"2022-12-30T10:10:10\",\r\n    \"format\": \"online\",\r\n    \"topics\": [\"everything\", \"nothing\", \"classic\"],\r\n    \"organizer_id\": 1,\r\n    \"presenter_ids\": [1,2]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch user",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mr. Agent P\",\r\n    \"email\": \"asd@asd.euasd\",\r\n    \"location\": \"Budapest\",\r\n    \"picture\": \"http://img.com\",\r\n    \"is_presenter\": true,\r\n    \"presenter_info\": \"I want to present about everything\",\r\n    \"presenter_topics\": [\"music\", \"sport\", \"whatever\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete events",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete relationship",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/2/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{creator_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "get events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Amsterdam",
+									"disabled": true
+								},
+								{
+									"key": "country",
+									"value": "Netherlands",
+									"disabled": true
+								},
+								{
+									"key": "keyword",
+									"value": "cyber",
+									"disabled": true
+								},
+								{
+									"key": "format",
+									"value": "online",
+									"description": "online, inperson, hybrid",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "technology",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get presenters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/presenters",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"presenters"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "technology",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "sport",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Harrison Branch\",\r\n    \"email\": \"harrison.branch@showup-meetup.com\",\r\n    \"country\": \"Russia\",\r\n    \"city\": \"Moscow\",\r\n    \"auth_user_id\": \"auth0|61b26e190ff95f0068feef8f\",\r\n    \"picture\": \"http://\",\r\n    \"is_presenter\": false,\r\n    \"presenter_info\": null,\r\n    \"presenter_topics\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create events",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Let's get together\", \r\n    \"country\": \"Russia\", \r\n    \"details\": \"Some details about the event...\",\r\n    \"city\": \"Moscow\",\r\n    \"picture\": \"https://\",\r\n    \"topics\": [\"dancing\"], \r\n    \"format\": \"online\", \r\n    \"event_time\": \"2022-04-02T10:00:00\",\r\n    \"organizer_id\": 2,\r\n    \"presenter_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create relationship",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/1/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch events",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"picture\": \"https://pic.pic\",\r\n    \"details\": \"Some details about the event\",\r\n    \"country\": \"Hungary\",\r\n    \"city\": \"Budapest\",\r\n    \"event_time\": \"2022-12-30T10:10:10\",\r\n    \"format\": \"online\",\r\n    \"topics\": [\"everything\", \"nothing\", \"classic\"],\r\n    \"organizer_id\": 1,\r\n    \"presenter_ids\": [1,2]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch user",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mr. Agent P\",\r\n    \"email\": \"asd@asd.euasd\",\r\n    \"location\": \"Budapest\",\r\n    \"picture\": \"http://img.com\",\r\n    \"is_presenter\": true,\r\n    \"presenter_info\": \"I want to present about everything\",\r\n    \"presenter_topics\": [\"music\", \"sport\", \"whatever\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete events",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/events/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"events",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete relationship",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users/2/relationship/events/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"relationship",
+								"events",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{admin_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://127.0.0.1:5000"
+		},
+		{
+			"key": "admin_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlNPbnFrdE81SlZmUnplRDhWOEpQaiJ9.eyJpc3MiOiJodHRwczovL3Nob3d1cC1tZWV0dXAuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDYxYjI2ZTE5MGZmOTVmMDA2OGZlZWY4ZiIsImF1ZCI6InNob3d1cC1tZWV0dXAiLCJpYXQiOjE2MzkyNTU1MTAsImV4cCI6MTYzOTM0MTkxMCwiYXpwIjoidjFNd1RURUNEQzZtWFFrbkw5aE44bHVTVjNtSGhJejUiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImNyZWF0ZTp1c2Vycy1ldmVudHMtcmVsIiwiZGVsZXRlOnVzZXJzLWV2ZW50cy1yZWwiLCJnZXQ6dXNlcnMtZGV0YWlscyIsInVwZGF0ZTp1c2VycyJdfQ.BE--QgMRHUOH7rYNNm-Qg_MkL5Yj3L9U47jyY15bH51wjaQoaLDPO1gXW-ChDMo6UdEd_imuq2nSATRnbR_BqOWSM7L36CFMgSqOoFSWitBoBNMz5URIzo1L1y0BiOb8gys-CptZIxTfHf1YSlxAU-sb_Yo55Xl0mw59Ur75zkYDsJ3Qr6McAL20GhNgpfp5sIIcgAo-__nJPhYD6pnWlWOUKU66XHXyRgXIfXlOaYjCy8CNSpvFujdtxlART1FI6f2UATJBVyCIFS3X5nEsN2IjzM8HPweNrlUL2gcJQDHKG_c5KMPoP9z__ymRogA_pgIsQb7nvNP-ipkYCNt1FQ"
+		},
+		{
+			"key": "creator_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlNPbnFrdE81SlZmUnplRDhWOEpQaiJ9.eyJpc3MiOiJodHRwczovL3Nob3d1cC1tZWV0dXAuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDYxYjI2ZGViMmJiOTM1MDA2OTk5NjAwNiIsImF1ZCI6InNob3d1cC1tZWV0dXAiLCJpYXQiOjE2MzkyNTU1OTksImV4cCI6MTYzOTM0MTk5OSwiYXpwIjoidjFNd1RURUNEQzZtWFFrbkw5aE44bHVTVjNtSGhJejUiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImNyZWF0ZTpldmVudHMiLCJjcmVhdGU6dXNlcnMtZXZlbnRzLXJlbCIsImRlbGV0ZTpldmVudHMiLCJkZWxldGU6dXNlcnMiLCJkZWxldGU6dXNlcnMtZXZlbnRzLXJlbCIsImdldDpwcmVzZW50ZXJzIiwiZ2V0OnVzZXJzLWRldGFpbHMiLCJ1cGRhdGU6ZXZlbnRzIiwidXBkYXRlOnVzZXJzIl19.Gs5QyVQxBb-HMs79BE8d29iOobwX-q--WwX6YM4CWZIpWUMI_kM-IIOhqlBHf5C5WQbmpEQMfoAcZsZ3oqkaZ4226HJoE5imj7hv0xApPmva-Y6JhvSMkbfeRXwwbhLSZY1a0wZIk6Rs6OT4oY4eFS_1y6zKekEV2wmyBJf7mzeRctiaoBQSnwtd4ZNUi-H5K2uec9XbXjM2sn_sV05Omv2cEBZt9euRH4RduoENp9rn5nzbtwhCS1jt6hy8kgUl97LxNfKV9FL7DQ346vGaVqA6wry4caqIodP44S2aJcOBuKZnYTDmXhCurkWlFVMV2yiWH8jSbnhSVoXH9ojbYg"
+		},
+		{
+			"key": "user_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlNPbnFrdE81SlZmUnplRDhWOEpQaiJ9.eyJpc3MiOiJodHRwczovL3Nob3d1cC1tZWV0dXAuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDYxYjI2ZTE5MGZmOTVmMDA2OGZlZWY4ZiIsImF1ZCI6InNob3d1cC1tZWV0dXAiLCJpYXQiOjE2MzkyNTU1MTAsImV4cCI6MTYzOTM0MTkxMCwiYXpwIjoidjFNd1RURUNEQzZtWFFrbkw5aE44bHVTVjNtSGhJejUiLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImNyZWF0ZTp1c2Vycy1ldmVudHMtcmVsIiwiZGVsZXRlOnVzZXJzLWV2ZW50cy1yZWwiLCJnZXQ6dXNlcnMtZGV0YWlscyIsInVwZGF0ZTp1c2VycyJdfQ.BE--QgMRHUOH7rYNNm-Qg_MkL5Yj3L9U47jyY15bH51wjaQoaLDPO1gXW-ChDMo6UdEd_imuq2nSATRnbR_BqOWSM7L36CFMgSqOoFSWitBoBNMz5URIzo1L1y0BiOb8gys-CptZIxTfHf1YSlxAU-sb_Yo55Xl0mw59Ur75zkYDsJ3Qr6McAL20GhNgpfp5sIIcgAo-__nJPhYD6pnWlWOUKU66XHXyRgXIfXlOaYjCy8CNSpvFujdtxlART1FI6f2UATJBVyCIFS3X5nEsN2IjzM8HPweNrlUL2gcJQDHKG_c5KMPoP9z__ymRogA_pgIsQb7nvNP-ipkYCNt1FQ"
+		}
+	]
+}
