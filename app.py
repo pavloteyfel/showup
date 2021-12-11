@@ -16,14 +16,16 @@ CORS(app)
 
 LOGIN_URL = app.config['LOGIN_URL']
 
-description = f'API for ShowUp application. You can grab a token <a href="{LOGIN_URL}">here</a> for a specific role listed below:<br>'
+description = f'API for ShowUp application. You can grab a token \
+    <a href="{LOGIN_URL}">here</a> for a specific role listed below:<br>'
+
 description += """
 **Dummy Users**
 Admin role: angela.smith@showup-meetup.com
 Creator role: tom.johnson@showup-meetup.com
 User role: harrison.branch@showup-meetup.com
 
-Every user has the following password: **4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq**<br>
+Same password for everyone: **4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq**<br>
 """
 
 auth.AUTH0_DOMAIN = app.config['AUTH0_DOMAIN']
@@ -36,8 +38,8 @@ authorizations = {
         'type': 'apiKey',
         'in': 'header',
         'name': 'Authorization',
-        'description': "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token"
-
+        'description': "Type in the *'Value'* input box below: \
+            **'Bearer &lt;JWT&gt;'**, where JWT is the token"
     }
 }
 
@@ -67,16 +69,29 @@ def server_errors(error):
 
 
 parser = reqparse.RequestParser()
+
 #-----------------------------------------------------------------------------#
-# APIs
+# Helpers
 #-----------------------------------------------------------------------------#
+
+
+def check_subject(auth_id, jwt):
+    if auth_id != jwt.get('sub'):
+        if 'override:all' not in jwt.get('permissions'):
+            abort(
+                403, message="User ID does not match with authorized \
+                    user's ID")
+
+#-----------------------------------------------------------------------------#
+# Endpoint Models
+#-----------------------------------------------------------------------------#
+
 
 user_short = api.model('UserShort', {
     'id': fields.Integer,
     'name': fields.String,
     'url': fields.Url('user', absolute=True),
 })
-
 
 presenter = api.inherit('Presenter', user_short, {
     'is_presenter': fields.Boolean,
@@ -88,9 +103,11 @@ event_base = api.model('EventBase', {
     'name': fields.String,
     'picture': fields.String,
     'country': fields.String(example='Netherlands'),
-    'topics': fields.List(fields.String(example='technology', description='desc', title='title')),
+    'topics': fields.List(fields.String(
+        example='technology', description='desc', title='title')),
     'city': fields.String(example='Amsterdam'),
-    'event_time': fields.DateTime(dt_format='iso8601', example='2025-01-01T10:00:00'),
+    'event_time': fields.DateTime(
+        dt_format='iso8601', example='2025-01-01T10:00:00'),
     'format': fields.String(example='online'),
 })
 
@@ -169,6 +186,10 @@ presenter_list = api.model('PresenterList', {
 
 post_user_response = api.model('UserCreatedResponse', {'id': fields.Integer})
 
+#-----------------------------------------------------------------------------#
+# Endpoints
+#-----------------------------------------------------------------------------#
+
 
 class UserListResource(Resource):
     @auth.requires_auth('get:users')
@@ -195,7 +216,8 @@ class UserListResource(Resource):
         user_parser.add_argument('picture', type=str)
         user_parser.add_argument('is_presenter', type=bool)
         user_parser.add_argument('presenter_info', type=str)
-        user_parser.add_argument('presenter_topics', type=str, action='append')
+        user_parser.add_argument('presenter_topics', type=str,
+                                 action='append')
         args = user_parser.parse_args()
 
         user = User()
@@ -243,14 +265,6 @@ class UserResource(Resource):
     def get(self, jwt, id):
         return User.query.get_or_404(id)
 
-    # @auth.requires_auth('delete:users')
-    # @api.response(200, 'Success')
-    # @api.response(404, 'Not found')
-    # def delete(self, jwt, id):
-    #     user = User.query.get_or_404(id)
-    #     user.delete()
-    #     return {}, 200
-
     @auth.requires_auth('update:users')
     @api.expect(user_base)
     @api.response(204, 'No content')
@@ -258,11 +272,7 @@ class UserResource(Resource):
     def patch(self, jwt, id):
         user = User.query.get_or_404(id)
 
-        if user.auth_user_id != jwt.get('sub'):
-            if 'override:all' not in jwt.get('permissions'):
-                abort(
-                    403, message="User ID does not match with authorized \
-                        user's ID")
+        check_subject(user.auth_user_id, jwt)
 
         user_parser = parser.copy()
         user_parser.add_argument('email', type=str)
@@ -288,13 +298,10 @@ class UserApplication(Resource):
     @auth.requires_auth('create:users-events-rel')
     def post(self, jwt, user_id, event_id):
         user = User.query.get_or_404(user_id)
-        event = Event.query.get_or_404(event_id)
 
-        if user.auth_user_id != jwt.get('sub'):
-            if 'override:all' not in jwt.get('permissions'):
-                abort(
-                    403, message="User ID does not match with authorized \
-                        user's ID")
+        check_subject(user.auth_user_id, jwt)
+
+        event = Event.query.get_or_404(event_id)
 
         if user in event.attendees:
             abort(409, message='User is already applied for the event')
@@ -444,13 +451,7 @@ class EventResource(Resource):
     @auth.requires_auth('delete:events')
     def delete(self, jwt, id):
         event = Event.query.get_or_404(id)
-
-        if event.organizer.auth_user_id != jwt.get('sub'):
-            if 'override:all' not in jwt.get('permissions'):
-                abort(
-                    403, message="Organizer's user ID does not match with \
-                        authorized user's ID")
-
+        check_subject(event.organizer.auth_user_id, jwt)
         event.delete()
         return {}, 200
 
@@ -462,11 +463,7 @@ class EventResource(Resource):
     def patch(self, jwt, id):
         event = Event.query.get_or_404(id)
 
-        if event.organizer.auth_user_id != jwt.get('sub'):
-            if 'override:all' not in jwt.get('permissions'):
-                abort(
-                    403, message="Organizer's user ID does not match with \
-                        authorized user's ID")
+        check_subject(event.organizer.auth_user_id, jwt)
 
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str)
