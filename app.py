@@ -97,41 +97,77 @@ def check_subject(auth_id, jwt):
 #-----------------------------------------------------------------------------#
 
 user_short = api.model('UserShort', {
-    'id': fields.Integer,
-    'name': fields.String,
-    'url': fields.Url('user', absolute=True),
+    'id': fields.Integer(example=1, description='User ID'),
+    'name': fields.String(
+        example='John Smith', description='Full name of the user'),
+    'url': fields.Url('user', absolute=True, example='http://something'),
 })
 
 presenter = api.inherit('Presenter', user_short, {
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
+    'is_presenter': fields.Boolean(
+        example=False, 
+        description='Indicates if the user want to hold presentations'),
+    'presenter_info': fields.String(
+        example='Presentation information', 
+        description='Detailed presentation information'),
+    'presenter_topics': fields.List(fields.String(
+        example='technology',
+        description='Topics the presenter proficient in')),
 })
 
 event_base = api.model('EventBase', {
-    'name': fields.String,
-    'picture': fields.String,
-    'country': fields.String(example='Netherlands'),
+    'name': fields.String(
+        example='Cool Event', 
+        description='Name of the event'),
+    'picture': fields.String(
+        example='https://dummyimage.com/600x400/000/fff&text=example', 
+        description='Url to a picture location'),
+    'country': fields.String(
+        example='Netherlands', 
+        description='Country where the event will be held'),
     'topics': fields.List(fields.String(
-        example='technology', description='desc', title='title')),
-    'city': fields.String(example='Amsterdam'),
+        example='technology',
+        description='List of topics touched on the event'
+        )),
+    'city': fields.String(
+        example='Amsterdam',
+        description='City where the event will be held'),
     'event_time': fields.DateTime(
-        dt_format='iso8601', example='2025-01-01T10:00:00'),
-    'format': fields.String(example='online', enum=['online', 'inperson', 'hybrid']),
+        dt_format='iso8601', 
+        example='2025-01-01T10:00:00',
+        description='When the event starts'),
+    'format': fields.String(
+        example='online', 
+        enum=['online', 'inperson', 'hybrid'],
+        description='Type of event: online, inperson, hybrid'),
 })
 
 event_short = api.inherit('EventShort', event_base, {
-    'id': fields.Integer,
-    'url': fields.Url('event', absolute=True),
-    'attendees_count': fields.Integer,
-    'organizer': fields.Nested(user_short),
+    'id': fields.Integer(example=1, description='Event ID'),
+    'url': fields.Url('event', absolute=True, example='http://something'),
+    'attendees_count': fields.Integer(
+        example=1, 
+        description='Number of attendees subscribed for the event'),
+    'organizer': fields.Nested(
+        user_short,
+        description='The boss of the event :)'),
 })
 
 event = api.inherit('Event', event_short, {
-    'details': fields.String,
-    'organizer': fields.Nested(user_short),
-    'attendees': fields.Nested(user_short, as_list=True),
-    'presenters': fields.Nested(presenter, as_list=True),
+    'details': fields.String(
+        example='Some detailed event description',
+        description='Info about event details'),
+    'organizer': fields.Nested(
+        user_short,
+        description='Organizer data'),
+    'attendees': fields.Nested(
+        user_short,
+        description='Attendees of the event and their short info',
+        as_list=True),
+    'presenters': fields.Nested(
+        presenter,
+        description='Presenters of the event and their short info',
+        as_list=True),
 })
 
 event_list = api.model('EventList', {
@@ -141,27 +177,53 @@ event_list = api.model('EventList', {
         as_list=True
     ),
     'total': fields.Integer(
-        description='Total number of events'
+        description='Total number of events',
+        example=1
     )
 })
 
 update_event = api.inherit('CreateEventBody', event_base, {
-    'details': fields.String,
-    'organizer_id': fields.Integer(example=1),
-    'presenter_ids': fields.List(fields.Integer(example=1)),
+    'details': fields.String(
+        example='Some detailed event description',
+        description='Info about event details'),
+    'organizer_id': fields.Integer(
+        example=1,
+        description='Who should be the new organizer? ID please.'),
+    'presenter_ids': fields.List(fields.Integer(
+        example=1,
+        description='So we are changing our presenters? Please provide an ID.'
+        )),
 })
 
 
 user_base = api.model('UserBase', {
-    'name': fields.String,
-    'email': fields.String,
-    'country': fields.String,
-    'city': fields.String,
-    'auth_user_id': fields.String,
-    'picture': fields.String,
-    'is_presenter': fields.Boolean,
-    'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String),
+    'name': fields.String(
+        example='John Smith', description='Full name of the user'),
+    'email': fields.String(
+        example='john.smith@company.com',
+        description='Email address',
+    ),
+    'country': fields.String(
+        example='Russia',
+        description='It took me for a while to provide all this docs :)'),
+    'city': fields.String(
+        example='Moscow',
+        description='Yeah, I like this city :)'),
+    'auth_user_id': fields.String(
+        example='auth0|something',
+        description='Not sure this info should be provided like that'),
+    'picture': fields.String(
+        example='https://dummyimage.com/600x400/000/fff&text=example', 
+        description='Url to a picture location'),
+    'is_presenter': fields.Boolean(
+        example=False, 
+        description='Indicates if the user want to hold presentations'),
+    'presenter_info': fields.String(
+        example='Presentation information', 
+        description='Detailed presentation information'),
+    'presenter_topics': fields.List(fields.String(
+        example='technology',
+        description='Topics the presenter proficient in')),
 })
 
 user = api.inherit('User', user_base, {
@@ -188,6 +250,7 @@ user_list = api.model('UserList', {
         description='List of users',
         as_list=True),
     'total': fields.Integer(
+        example=1,
         description='Total number of users')
 })
 
@@ -364,6 +427,7 @@ class UserResource(Resource):
 @api.response(401, 'Unauthorized request')
 @api.response(403, 'Forbidden request')
 @api.response(404, 'Requested resource not found')
+@api.response(422, 'The received data cannot be processed')
 @api.doc(params={'user_id': 'User ID', 'event_id': 'Event ID'})
 class UserApplication(Resource):
     """Handles user's subscriptions"""
