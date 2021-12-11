@@ -1,5 +1,5 @@
-from dotenv import load_dotenv
 from urllib.parse import urljoin, urlencode
+from dotenv import load_dotenv
 
 import os
 
@@ -11,7 +11,10 @@ HOST = os.environ.get('HOST')
 
 SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get(
     'DATABASE_TRACK_CHANGES', False) == 'true'
+
 SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+
+RESTX_MASK_SWAGGER = os.environ.get('RESTX_MASK_SWAGGER', False) == 'true'
 
 if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith(
         "postgres://"):
@@ -24,7 +27,6 @@ AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_WELL_KNOWN = os.environ.get('AUTH0_WELL_KNOWN')
 ALGORITHMS = os.environ.get('ALGORITHMS').split(';')
 API_AUDIENCE = os.environ.get('API_AUDIENCE')
-
 CLIENT_ID = os.environ.get('CLIENT_ID')
 
 LOGIN_URL = urljoin(AUTH0_DOMAIN, 'authorize') + '?' + urlencode({
