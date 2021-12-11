@@ -56,14 +56,14 @@ There are three predefined roles in the application: admin, creator and user.
 - Can update any user
 - Can update, delete any event
 
-Auth0 login: [go](https://showup-meetup.eu.auth0.com/authorize?audience=showup-meetup&response_type=token&client_id=v1MwTTECDC6mXQknL9hN8luSV3mHhIz5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Ftoken)
+Auth0 login [link](https://showup-meetup.eu.auth0.com/authorize?audience=showup-meetup&response_type=token&client_id=v1MwTTECDC6mXQknL9hN8luSV3mHhIz5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Ftoken).
 
 Example users can be used with this password: _4qGOnA8v4c7vMxJTaRfXZ0ejZttaUSuq_
 - **user:** harrison.branch@showup-meetup.com
 - **creator:** tom.johnson@showup-meetup.com
 - **admin:** angela.smith@showup-meetup.com
 
-Example tokens generated in the `test_token.json` file.
+Example tokens generated in this ![file](test_token.json).
 
 ## Working Locally
 All backend code follows [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/).
