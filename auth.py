@@ -118,7 +118,8 @@ def decode_token(token, key):
     except jwt.JWTClaimsError:
         raise AuthError({
             'code': 'invalid_claims',
-            'description': 'Incorrect claims. Please, check the audience and issuer.'
+            'description': 'Incorrect claims. Please, check the audience \
+                and issuer.'
         }, 401)
 
     except BaseException:
@@ -195,7 +196,7 @@ def verify_jwt(token):
             'code': 'invalid_header',
             'description': 'Authorization malformed.'
         }, 401)
-    
+
     for key in jw_keys.get('keys'):
         if key.get('kid') == unverified_header.get('kid'):
             rsa_key = {
@@ -230,7 +231,7 @@ def requires_auth(permission=''):
         requested permission
 
     Returns:
-        - the decorator which passes the decoded payload to the decorated 
+        - the decorator which passes the decoded payload to the decorated
             method
     """
     def requires_auth_decorator(func):

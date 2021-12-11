@@ -9,11 +9,14 @@ load_dotenv()
 
 HOST = os.environ.get('HOST')
 
-SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('DATABASE_TRACK_CHANGES', False) == 'true'
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get(
+    'DATABASE_TRACK_CHANGES', False) == 'true'
 SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
-if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
+if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith(
+        "postgres://"):
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
+        "postgres://", "postgresql://", 1)
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
@@ -29,5 +32,4 @@ LOGIN_URL = urljoin(AUTH0_DOMAIN, 'authorize') + '?' + urlencode({
     'response_type': 'token',
     'client_id': CLIENT_ID,
     'redirect_uri': HOST + 'token',
-
 })

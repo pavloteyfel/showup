@@ -32,17 +32,24 @@ auth.ALGORITHMS = app.config['ALGORITHMS']
 auth.API_AUDIENCE = app.config['API_AUDIENCE']
 
 authorizations = {
-    'jwt_token' : {
-        'type' : 'apiKey',
-        'in' : 'header',
-        'name' : 'Authorization',
+    'jwt_token': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization',
         'description': "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token"
-    
+
     }
 }
 
-api = Api(app, version='1.0', title='ShowUp API', description=description, 
-    catch_all_404s=True, default='Related endpoints', authorizations=authorizations, security='jwt_token')
+api = Api(
+    app,
+    version='1.0',
+    title='ShowUp API',
+    description=description,
+    catch_all_404s=True,
+    default='Related endpoints',
+    authorizations=authorizations,
+    security='jwt_token')
 
 app.config['RESTX_MASK_SWAGGER'] = False
 
@@ -53,9 +60,11 @@ def handle_auth_errors(error):
     status_code = error.status_code
     return {'message': message}, status_code
 
+
 @app.errorhandler(500)
 def server_errors(error):
     return {'message': 'Internal sever error'}, 500
+
 
 parser = reqparse.RequestParser()
 #-----------------------------------------------------------------------------#
@@ -126,7 +135,7 @@ user_base = api.model('UserBase', {
     'picture': fields.String,
     'is_presenter': fields.Boolean,
     'presenter_info': fields.String,
-    'presenter_topics': fields.List(fields.String), 
+    'presenter_topics': fields.List(fields.String),
 })
 
 user = api.inherit('User', user_base, {
@@ -159,6 +168,7 @@ presenter_list = api.model('PresenterList', {
 })
 
 post_user_response = api.model('UserCreatedResponse', {'id': fields.Integer})
+
 
 class UserListResource(Resource):
     @auth.requires_auth('get:users')
@@ -193,12 +203,13 @@ class UserListResource(Resource):
         user_id = user.create()
         return {'id': user_id}, 201
 
+
 class PresenterListResource(Resource):
     @auth.requires_auth('get:presenters')
     @api.doc(params={
         'keyword': "Optional, searches in presenter's information",
         'topic': 'Optional, exact match',
-        })
+    })
     @api.marshal_with(presenter_list)
     def get(self, jwt):
 
@@ -210,10 +221,12 @@ class PresenterListResource(Resource):
         presenter_query = User.query.filter(User.is_presenter)
 
         if args.topic:
-            presenter_query = presenter_query.filter(User.presenter_topics.contains(f'{{{args.topic}}}')) 
+            presenter_query = presenter_query.filter(
+                User.presenter_topics.contains(f'{{{args.topic}}}'))
 
         if args.keyword:
-            presenter_query = presenter_query.filter(User.presenter_info.ilike(f'%{args.keyword}%')) 
+            presenter_query = presenter_query.filter(
+                User.presenter_info.ilike(f'%{args.keyword}%'))
 
         presenters = presenter_query.all()
 
@@ -221,6 +234,7 @@ class PresenterListResource(Resource):
             'presenters': presenters,
             'total': len(presenters)
         }
+
 
 @api.doc(params={'id': 'User ID'})
 class UserResource(Resource):
@@ -246,7 +260,9 @@ class UserResource(Resource):
 
         if user.auth_user_id != jwt.get('sub'):
             if 'override:all' not in jwt.get('permissions'):
-                abort(403, message="User ID does not match with authorized user's ID")
+                abort(
+                    403, message="User ID does not match with authorized \
+                        user's ID")
 
         user_parser = parser.copy()
         user_parser.add_argument('email', type=str)
@@ -259,12 +275,13 @@ class UserResource(Resource):
         user_parser.add_argument('presenter_topics', type=str, action='append')
 
         args = user_parser.parse_args()
-        
-        args = {key:value for key, value in args.items() if value != None}
+
+        args = {key: value for key, value in args.items() if value is not None}
 
         user.from_dict(args)
         user.update()
         return {}, 204
+
 
 @api.doc(params={'user_id': 'User ID', 'event_id': 'Event ID'})
 class UserApplication(Resource):
@@ -275,21 +292,25 @@ class UserApplication(Resource):
 
         if user.auth_user_id != jwt.get('sub'):
             if 'override:all' not in jwt.get('permissions'):
-                abort(403, message="User ID does not match with authorized user's ID")
+                abort(
+                    403, message="User ID does not match with authorized \
+                        user's ID")
 
         if user in event.attendees:
             abort(409, message='User is already applied for the event')
         event.attendees.append(user)
         event.update()
         return {}, 201
-    
+
     @auth.requires_auth('delete:users-events-rel')
     def delete(self, jwt, user_id, event_id):
         user = User.query.get_or_404(user_id)
 
         if user.auth_user_id != jwt.get('sub'):
             if 'override:all' not in jwt.get('permissions'):
-                abort(403, message="User ID does not match with authorized user's ID")
+                abort(
+                    403, message="User ID does not match with authorized \
+                        user's ID")
 
         event = Event.query.get_or_404(event_id)
 
@@ -298,6 +319,7 @@ class UserApplication(Resource):
         event.attendees.remove(user)
         event.update()
         return {}, 200
+
 
 class EventListResource(Resource):
     @api.doc(params={
@@ -308,7 +330,7 @@ class EventListResource(Resource):
         'format': 'Optional, types: [online, inperson, hybrid]',
         'time_from': 'Optional',
         'time_to': 'Optional',
-        }, security=[])
+    }, security=[])
     @api.marshal_with(event_list)
     def get(self):
         event_parser = parser.copy()
@@ -317,11 +339,17 @@ class EventListResource(Resource):
         event_parser.add_argument('city', type=str, location='args')
         event_parser.add_argument('topic', type=str, location='args')
         event_parser.add_argument('format', type=str, location='args')
-        event_parser.add_argument('time_from', type=inputs.datetime_from_iso8601, location='args')
-        event_parser.add_argument('time_to',  type=inputs.datetime_from_iso8601, location='args')
+        event_parser.add_argument(
+            'time_from',
+            type=inputs.datetime_from_iso8601,
+            location='args')
+        event_parser.add_argument(
+            'time_to',
+            type=inputs.datetime_from_iso8601,
+            location='args')
 
         args = event_parser.parse_args()
-        
+
         events_query = Event.query
 
         if args.country:
@@ -329,21 +357,25 @@ class EventListResource(Resource):
 
         if args.city:
             events_query = events_query.filter(Event.city == args.city)
-        
+
         if args.format:
-            events_query = events_query.filter(Event.format == args.format) 
+            events_query = events_query.filter(Event.format == args.format)
 
         if args.keyword:
-            events_query = events_query.filter(Event.name.ilike(f'%{args.keyword}%')) 
+            events_query = events_query.filter(
+                Event.name.ilike(f'%{args.keyword}%'))
 
         if args.topic:
-            events_query = events_query.filter(Event.topics.contains(f'{{{args.topic}}}'))
-        
+            events_query = events_query.filter(
+                Event.topics.contains(f'{{{args.topic}}}'))
+
         if args.time_to:
-            events_query = events_query.filter(Event.event_time <= args.time_to)
+            events_query = events_query.filter(
+                Event.event_time <= args.time_to)
 
         if args.time_from:
-            events_query = events_query.filter(Event.event_time >= args.time_from)  
+            events_query = events_query.filter(
+                Event.event_time >= args.time_from)
 
         events = events_query.all()
 
@@ -351,7 +383,6 @@ class EventListResource(Resource):
             'events': events,
             'total': len(events)
         }
-    
 
     @auth.requires_auth('create:events')
     @api.expect(update_event)
@@ -361,9 +392,18 @@ class EventListResource(Resource):
         event_parser.add_argument('details', type=str, required=True)
         event_parser.add_argument('country', type=str, required=True)
         event_parser.add_argument('city', type=str, required=True)
-        event_parser.add_argument('event_time', type=inputs.datetime_from_iso8601, required=True)
-        event_parser.add_argument('format', type=str, required=True, choices=('online', 'inperson', 'hybrid'))
-        event_parser.add_argument('topics', type=str, action='append', required=True)
+        event_parser.add_argument(
+            'event_time',
+            type=inputs.datetime_from_iso8601,
+            required=True)
+        event_parser.add_argument(
+            'format', type=str, required=True, choices=(
+                'online', 'inperson', 'hybrid'))
+        event_parser.add_argument(
+            'topics',
+            type=str,
+            action='append',
+            required=True)
         event_parser.add_argument('organizer_id', type=int, required=True)
         event_parser.add_argument('picture', type=str)
         event_parser.add_argument('presenter_ids', type=int, action='append')
@@ -375,12 +415,14 @@ class EventListResource(Resource):
         presenters = []
 
         if args.presenter_ids:
-            # Check if presenters exist with among users and add them to the list
+            # Check if presenters exist with among users and add them to the
+            # list
             for presenter_id in args.presenter_ids:
                 presenter = User.query.get_or_404(presenter_id)
                 presenters.append(presenter)
         else:
-            # if no presenter was sent, then the organizer will be the presenter
+            # if no presenter was sent, then the organizer will be the
+            # presenter
             presenters.append(organizer)
 
         args.presenters = presenters
@@ -405,7 +447,9 @@ class EventResource(Resource):
 
         if event.organizer.auth_user_id != jwt.get('sub'):
             if 'override:all' not in jwt.get('permissions'):
-                abort(403, message="Organizer's user ID does not match with authorized user's ID")
+                abort(
+                    403, message="Organizer's user ID does not match with \
+                        authorized user's ID")
 
         event.delete()
         return {}, 200
@@ -420,15 +464,20 @@ class EventResource(Resource):
 
         if event.organizer.auth_user_id != jwt.get('sub'):
             if 'override:all' not in jwt.get('permissions'):
-                abort(403, message="Organizer's user ID does not match with authorized user's ID")
+                abort(
+                    403, message="Organizer's user ID does not match with \
+                        authorized user's ID")
 
         event_parser = parser.copy()
         event_parser.add_argument('name', type=str)
         event_parser.add_argument('details', type=str)
         event_parser.add_argument('country', type=str)
         event_parser.add_argument('city', type=str)
-        event_parser.add_argument('event_time', type=inputs.datetime_from_iso8601,)
-        event_parser.add_argument('format', type=str, choices=('hybrid', 'inperson', 'online'))
+        event_parser.add_argument(
+            'event_time', type=inputs.datetime_from_iso8601,)
+        event_parser.add_argument(
+            'format', type=str, choices=(
+                'hybrid', 'inperson', 'online'))
         event_parser.add_argument('topics', type=str, action='append')
         event_parser.add_argument('organizer_id', type=int)
         event_parser.add_argument('picture', type=str)
@@ -443,13 +492,14 @@ class EventResource(Resource):
         presenters = []
 
         if args.presenter_ids:
-            # Check if presenters exist with among users and add them to the list
+            # Check if presenters exist with among users and add them to the
+            # list
             for presenter_id in args.presenter_ids:
                 presenter = User.query.get_or_404(presenter_id)
                 presenters.append(presenter)
 
         args.presenters = presenters
-        
+
         event.from_dict(args)
         event.update()
         return {}, 204
@@ -457,7 +507,9 @@ class EventResource(Resource):
 
 api.add_resource(UserListResource, '/users', endpoint='users')
 api.add_resource(UserResource, '/users/<int:id>', endpoint='user')
-api.add_resource(UserApplication, '/users/<int:user_id>/relationship/events/<int:event_id>')
+api.add_resource(
+    UserApplication,
+    '/users/<int:user_id>/relationship/events/<int:event_id>')
 api.add_resource(PresenterListResource, '/presenters')
 api.add_resource(EventListResource, '/events', endpoint='events')
 api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
