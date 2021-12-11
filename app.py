@@ -97,7 +97,7 @@ def check_subject(auth_id, jwt):
                     user's ID")
 
 #-----------------------------------------------------------------------------#
-# Bunch of Endpoint Models used for marshing and documentation
+# Bunch of Endpoint Models used for validation and documentation
 #-----------------------------------------------------------------------------#
 
 
@@ -295,7 +295,7 @@ class UserListResource(Resource):
     @auth.requires_auth('get:users')
     @api.marshal_with(user_list)
     def get(self, jwt):
-        """Retuns a list of users. Required permission `[get:users]`"""
+        """Returns a list of users. Required permission `[get:users]`"""
         users = User.query.all()
         return {
             'users': users,
@@ -384,7 +384,7 @@ class UserResource(Resource):
     @auth.requires_auth('get:users-details')
     @api.marshal_with(user)
     def get(self, jwt, id):
-        """Retuns user detailed data.
+        """Returns user detailed data.
         Required permission `[get:users-details]`"""
         return User.query.get_or_404(id)
 
@@ -402,7 +402,7 @@ class UserResource(Resource):
         # In case of override:all privilege (for admins) we don't care :)
         check_subject(user.auth_user_id, jwt)
 
-        # Defines what data can be expecte from patch method
+        # Defines what data can be expected from patch method
         user_parser = reqparse.RequestParser()
         user_parser.add_argument('email', type=str)
         user_parser.add_argument('name', type=str)
@@ -494,7 +494,7 @@ class EventListResource(Resource):
     }, security=[])
     @api.marshal_with(event_list)
     def get(self):
-        """Retuns a list of events. No permission required."""
+        """Returns a list of events. No permission required."""
 
         # Prepare data as usually
         event_parser = reqparse.RequestParser()
@@ -613,7 +613,7 @@ class EventResource(Resource):
     @api.marshal_with(event)
     @api.response(404, 'Requested resource not found')
     def get(self, id):
-        """Retuns event detailed data.
+        """Returns event detailed data.
         No permission required"""
         event = Event.query.get_or_404(id)
         return event
