@@ -39,6 +39,14 @@ class TestApp(TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+    
+    def test_endpoints_auth_required_401(self):
+        response1 = self.client.get('/users')
+        response2 = self.client.get('/users/1')
+        response3 = self.client.get('/presenters')
+        self.assertTrue(response1.status_code, 401)
+        self.assertTrue(response2.status_code, 401)
+        self.assertTrue(response3.status_code, 401)
 
     def test_get_events_endpoint(self):
         auth.REQUIRES_AUTH = False
@@ -53,6 +61,10 @@ class TestApp(TestCase):
         data = response.get_json()
         self.assertEqual(len(data.get('presenters')), 1)
         self.assertEqual(response.status_code, 200)
+    
+    def test_wrong_endpoint_404(self):
+        response = self.client.get('/notfound')
+        self.assertEqual(response.status_code, 404)
 
     def test_get_events_endpoint_with_id(self):
         auth.REQUIRES_AUTH = False
@@ -61,12 +73,22 @@ class TestApp(TestCase):
         data = response.get_json()
         self.assertTrue(data)
 
+    def test_get_events_endpoint_wrong_id_404(self):
+        auth.REQUIRES_AUTH = False
+        response = self.client.get('/events/999')
+        self.assertEqual(response.status_code, 404)
+
     def test_get_users_endpoint(self):
         auth.REQUIRES_AUTH = False
         response = self.client.get('/users')
         data = response.get_json()
         self.assertEqual(len(data.get('users')), 3)
         self.assertEqual(response.status_code, 200)
+
+    def test_get_users_endpoint_wrong_id_404(self):
+        auth.REQUIRES_AUTH = False
+        response = self.client.get('/users/999')
+        self.assertEqual(response.status_code, 404)
 
     def test_get_users_endpoint_with_id(self):
         auth.REQUIRES_AUTH = False
@@ -85,22 +107,39 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 201)
         data = response.get_json()
         self.assertTrue(User.query.get(data.get('id')))
+    
+    def test_create_users_wrong_data_400(self):
+        auth.REQUIRES_AUTH = False
+        json = {
+            'wrong': 'data',
+        }
+        response = self.client.post('/users', json=json)
+        self.assertEqual(response.status_code, 400)
 
-    def test_update_users(self):
+    def test_update_users_wrong_data_422(self):
         auth.REQUIRES_AUTH = False
         auth.PAYLOAD = {'sub': 'auth0|61b26dad20680d00696be24c'}
-        json = {'name': 'Robin'}
+        json = {'other': 'data'}
         response = self.client.patch('/users/1', json=json)
-        self.assertEqual(response.status_code, 204)
-        self.assertTrue(User.query.get(1).name == 'Robin')
+        self.assertEqual(response.status_code, 422)
 
     def test_update_event(self):
         auth.REQUIRES_AUTH = False
         auth.PAYLOAD = {'sub': 'auth0|61b26dad20680d00696be24c'}
-        json = {'name': 'Event X'}
+        json = {'name': 'Event X', 'presenter_ids': [1]}
         response = self.client.patch('/events/1', json=json)
         self.assertEqual(response.status_code, 204)
-        self.assertTrue(Event.query.get(1).name == 'Event X')
+        event = Event.query.get(1)
+        self.assertTrue(event.name == 'Event X')
+        self.assertTrue(len(event.presenters) == 1)
+        self.assertTrue(event.presenters[0].id == 1)
+
+    def test_update_event_wrong_data_422(self):
+        auth.REQUIRES_AUTH = False
+        auth.PAYLOAD = {'sub': 'auth0|61b26dad20680d00696be24c'}
+        json = {'not': 'found'}
+        response = self.client.patch('/events/1', json=json)
+        self.assertEqual(response.status_code, 422)
 
     def test_create_events(self):
         auth.REQUIRES_AUTH = False
@@ -119,11 +158,29 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Event.query.get(1))
 
+    def test_delete_event_wrong_id_404(self):
+        auth.REQUIRES_AUTH = False
+        auth.PAYLOAD = {'sub': 'auth0|61b26dad20680d00696be24c'}
+        response = self.client.delete('/events/999')
+        self.assertEqual(response.status_code, 404)
+
     def test_create_relationship(self):
         auth.REQUIRES_AUTH = False
         auth.PAYLOAD = {'sub': 'auth0|61b26deb2bb9350069996006', 'permissions': ''}
         response = self.client.post('/users/2/relationship/events/1')
         self.assertEqual(response.status_code, 201)
+
+    def test_create_relationship_wrong_id_404(self):
+        auth.REQUIRES_AUTH = False
+        auth.PAYLOAD = {'sub': 'auth0|61b26deb2bb9350069996006', 'permissions': ''}
+        response = self.client.post('/users/999/relationship/events/999')
+        self.assertEqual(response.status_code, 404)
+
+    def test_create_relationship_already_exist_409(self):
+        auth.REQUIRES_AUTH = False
+        auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
+        response = self.client.post('/users/3/relationship/events/1')
+        self.assertEqual(response.status_code, 409)
 
     def test_create_relationship_admin(self):
         auth.REQUIRES_AUTH = False
@@ -136,3 +193,12 @@ class TestApp(TestCase):
         auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
         response = self.client.delete('/users/3/relationship/events/1')
         self.assertEqual(response.status_code, 200)
+    
+    def test_delete_relationship_wrong_id_404(self):
+        auth.REQUIRES_AUTH = False
+        auth.PAYLOAD = {'sub': 'auth0|61b26e190ff95f0068feef8f', 'permissions': ''}
+        response = self.client.delete('/users/3/relationship/events/999')
+        self.assertEqual(response.status_code, 404)
+
+if __name__ == '__main__':
+    unittest.main()

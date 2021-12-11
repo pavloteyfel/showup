@@ -288,6 +288,9 @@ class UserResource(Resource):
 
         args = {key: value for key, value in args.items() if value is not None}
 
+        if not args:
+            abort(422, 'No valid attributes were found.')
+
         user.from_dict(args)
         user.update()
         return {}, 204
@@ -482,20 +485,25 @@ class EventResource(Resource):
 
         args = event_parser.parse_args()
 
+        args = {key: value for key, value in args.items() if value is not None}
+
+        if not args:
+            abort(422, 'No valid attributes were found.')
+
         # Check if organizer exists with given ID among users
-        if args.organizer_id:
-            User.query.get_or_404(args.organizer_id)
+        if args.get('organizer_id'):
+            User.query.get_or_404(args.get('organizer_id'))
 
         presenters = []
-
-        if args.presenter_ids:
+        if args.get('presenter_ids'):
             # Check if presenters exist with among users and add them to the
             # list
-            for presenter_id in args.presenter_ids:
+            for presenter_id in args.get('presenter_ids'):
                 presenter = User.query.get_or_404(presenter_id)
                 presenters.append(presenter)
 
-        args.presenters = presenters
+        if presenters:
+            args['presenters'] = presenters
 
         event.from_dict(args)
         event.update()
@@ -512,6 +520,7 @@ api.add_resource(EventListResource, '/events', endpoint='events')
 api.add_resource(EventResource, '/events/<int:id>', endpoint='event')
 
 
+# Landing page for grabbing token
 @app.route('/token')
 def token():
     return render_template('token.html', base_url=app.config['HOST'])
