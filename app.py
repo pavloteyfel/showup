@@ -1,5 +1,7 @@
 from flask_restx import Api, Resource, fields, reqparse, abort, inputs
+
 from flask.templating import render_template
+from sqlalchemy.sql import operators
 from models import db, Event, User
 from flask_migrate import Migrate
 from config import LOGIN_URL
@@ -516,31 +518,28 @@ class EventListResource(Resource):
 
         events_query = Event.query
 
-        # Checks the provided url params 1-by-1 and appends the Event.query
-        if args.country:
-            events_query = events_query.filter(Event.country == args.country)
+        rules = {
+            'country': {'field': 'country', 'op': 'eq',
+                        'value': args.get('country')},
+            'city': {'field': 'city', 'op': 'eq',
+                     'value': args.get('city')},
+            'format': {'field': 'format', 'op': 'eq',
+                       'value': args.get('format')},
+            'time_from': {'field': 'event_time', 'op': 'ge',
+                          'value': args.get('time_from')},
+            'time_to': {'field': 'event_time', 'op': 'le',
+                        'value': args.get('time_to')},
+            'keyword': {'field': 'name', 'op': 'ilike_op',
+                        'value': f"%{args.get('keyword')}%"},
+            'topic': {'field': 'topics', 'op': 'contains_op',
+                      'value': f"{{{args.get('topic')}}}"},
+        }
 
-        if args.city:
-            events_query = events_query.filter(Event.city == args.city)
-
-        if args.format:
-            events_query = events_query.filter(Event.format == args.format)
-
-        if args.keyword:
-            events_query = events_query.filter(
-                Event.name.ilike(f'%{args.keyword}%'))
-
-        if args.topic:
-            events_query = events_query.filter(
-                Event.topics.contains(f'{{{args.topic}}}'))
-
-        if args.time_to:
-            events_query = events_query.filter(
-                Event.event_time <= args.time_to)
-
-        if args.time_from:
-            events_query = events_query.filter(
-                Event.event_time >= args.time_from)
+        for key, value in args.items():
+            if value and key in rules:
+                condition = getattr(operators, rules[key]['op'])(getattr(
+                    Event, rules[key]['field']), rules[key]['value'])
+                events_query = events_query.filter(condition)
 
         events = events_query.all()
 
